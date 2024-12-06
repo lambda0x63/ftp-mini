@@ -6,6 +6,8 @@ export class FTPManager {
     private statusBar: vscode.StatusBarItem;
     private isConnected: boolean = false;
     private readonly DEFAULT_REMOTE_ROOT = 'html';
+    private readonly MAX_RETRY_ATTEMPTS = 3;
+    private readonly RETRY_DELAY = 1000; // 1초
 
     constructor() {
         this.client = new ftp.Client();
@@ -88,7 +90,7 @@ export class FTPManager {
         }
     }
 
-    async uploadFile(localPath: string): Promise<void> {
+    async uploadFile(localPath: string, retryCount = 0): Promise<void> {
         if (!this.isConnected) {
             await this.connect();
         }
@@ -104,6 +106,11 @@ export class FTPManager {
                 this.updateStatusBar(`FTP: 연결됨 (${remoteRoot}) ✓`);
             }, 2000);
         } catch (error) {
+            if (retryCount < this.MAX_RETRY_ATTEMPTS) {
+                this.updateStatusBar(`FTP: 재시도 중... (${retryCount + 1}/${this.MAX_RETRY_ATTEMPTS})`);
+                await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
+                return this.uploadFile(localPath, retryCount + 1);
+            }
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
             vscode.window.showErrorMessage(`업로드 실패: ${errorMessage}`);
             this.updateStatusBar('FTP: 업로드 실패 ✗');
@@ -208,5 +215,27 @@ export class FTPManager {
         }
         
         return files;
+    }
+
+    async deleteFile(localPath: string, retryCount = 0): Promise<void> {
+        if (!this.isConnected) {
+            await this.connect();
+        }
+
+        try {
+            const remotePath = this.getRemotePath(localPath);
+            await this.client.remove(remotePath);
+            
+            this.updateStatusBar('FTP: 파일 삭제 완료 ✓');
+        } catch (error) {
+            if (retryCount < this.MAX_RETRY_ATTEMPTS) {
+                this.updateStatusBar(`FTP: 삭제 재시도 중... (${retryCount + 1}/${this.MAX_RETRY_ATTEMPTS})`);
+                await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
+                return this.deleteFile(localPath, retryCount + 1);
+            }
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
+            vscode.window.showErrorMessage(`파일 삭제 실패: ${errorMessage}`);
+            this.updateStatusBar('FTP: 파일 삭제 실패 ✗');
+        }
     }
 }

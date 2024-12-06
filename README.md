@@ -1,71 +1,56 @@
-# ftp-mini README
+# FTP Mini
 
-This is the README for your extension "ftp-mini". After writing up a brief description, we recommend including the following sections.
+VSCode를 위한 간단한 FTP 배포 확장 프로그램. 웹 개발 실습 환경에 최적화.
 
-## Features
+## 주요 기능
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- FTP 서버 자동 연결 및 파일 배포
+- 파일 저장 시 자동 업로드
+- 파일 삭제 시 서버 동기화
+- 업로드 실패 시 자동 재시도 (최대 3회)
+- 상태바를 통한 작업 상태 확인
+- 원격 서버와 로컬 파일 동기화 옵션
 
-For example if there is an image subfolder under your extension project workspace:
+## 설치 방법
 
-\!\[feature X\]\(images/feature-x.png\)
+1. VSCode 실행
+2. Extensions 탭 열기 (Ctrl+Shift+X or Cmd+Shift+X)
+3. "ftp-mini" 검색
+4. Install 클릭
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## 사용 방법
 
-## Requirements
+### 초기 설정
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+1. Command Palette 열기 (Ctrl+Shift+P or Cmd+Shift+P)
+2. "FTP Mini: Configure Settings" 선택
+3. 필요 정보 입력:
+   - FTP 호스트 주소
+   - FTP 아이디
+   - FTP 비밀번호
+   - 원격 작업 디렉토리 (기본값: /html)
 
-## Extension Settings
+### 파일 업로드
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+- 파일 저장 시 자동 업로드
+- 상태바에서 업로드 상태 확인 가능
 
-For example:
+### 설정 초기화
 
-This extension contributes the following settings:
+1. Command Palette 열기
+2. "FTP Mini: Reset Configuration" 선택
+3. 새로운 설정 정보 입력
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## 주의사항
 
-## Known Issues
+- 기본 원격 디렉토리는 '/html'로 설정
+- 안전한 연결을 위해 FTP 자격 증명 정보는 로컬에 안전하게 저장
+- 네트워크 오류 발생 시 최대 3회 자동 재시도
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+## 버전 정보
 
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+### 0.1.0
+- 최초 릴리즈
+- 기본 FTP 기능 구현
+- 자동 업로드/삭제 기능
+- 재시도 메커니즘 추가

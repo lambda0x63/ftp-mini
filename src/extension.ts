@@ -26,6 +26,13 @@ export function activate(context: vscode.ExtensionContext) {
         ftpManager.uploadFile(document.uri.fsPath);
     });
 
+    // 파일 삭제 감지
+    let deleteWatcher = vscode.workspace.onDidDeleteFiles(async event => {
+        for (const file of event.files) {
+            await ftpManager.deleteFile(file.fsPath);
+        }
+    });
+
     // 상태바 아이템
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     statusBarItem.text = "FTP Mini";
@@ -36,6 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
         settingsCommand,
         resetCommand,
         saveWatcher,
+        deleteWatcher,
         statusBarItem,
         ftpManager
     );
