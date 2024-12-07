@@ -1,4 +1,4 @@
-# FTP Mini
+# FTP Mini(WIP)
 
 VSCode를 위한 간단한 FTP Extension.
 
