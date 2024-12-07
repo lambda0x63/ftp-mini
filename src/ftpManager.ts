@@ -7,7 +7,7 @@ export class FTPManager {
     private isConnected: boolean = false;
     private readonly DEFAULT_REMOTE_ROOT = 'html';
     private readonly MAX_RETRY_ATTEMPTS = 3;
-    private readonly RETRY_DELAY = 1000; // 1초
+    private readonly RETRY_DELAY = 1000;
 
     constructor() {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -16,8 +16,8 @@ export class FTPManager {
 
     async showSetupWizard() {
         const host = await vscode.window.showInputBox({
-            prompt: 'FTP 호스트 주소를 입력하세요',
-            placeHolder: 'example.dothome.co.kr',
+            prompt: 'FTP 서버 주소를 입력하세요',
+            placeHolder: 'your.domain.com',
             value: await this.getCurrentSetting('host') || ''
         });
 
@@ -27,8 +27,8 @@ export class FTPManager {
         }
 
         const username = await vscode.window.showInputBox({
-            prompt: 'FTP 아이디를 입력하세요',
-            placeHolder: '닷홈 아이디',
+            prompt: 'FTP 사용자 이름을 입력하세요',
+            placeHolder: 'username',
             value: await this.getCurrentSetting('username') || ''
         });
 
@@ -48,8 +48,8 @@ export class FTPManager {
         }
 
         const customRemoteRoot = await vscode.window.showInputBox({
-            prompt: '원격 작업 디렉토리 설정 (기본값: /html)',
-            placeHolder: '비워두면 자동으로 /html로 설정됩니다',
+            prompt: '원격 작업 디렉토리 설정',
+            placeHolder: '기본값: /html',
             value: await this.getCurrentSetting('remoteRoot') || '',
         });
 
@@ -211,7 +211,7 @@ export class FTPManager {
             }, async (progress) => {
                 const excludePatterns: string[] = config.get('syncExclude') || ['.git', 'node_modules'];
                 
-                // 재귀적으로 원격 파일 목록 가져오기
+                // 재귀적으로 원격 파일 목록록 가져오기
                 const fileList = await this.listRemoteFiles('');
                 const totalFiles = fileList.length;
                 let processedFiles = 0;
