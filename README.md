@@ -65,7 +65,7 @@ git clone https://github.com/root39293/ftp-mini.git
 cd ftp-mini
 ~~~
 
-3. 의존성 설치
+2. 의존성 설치
 ~~~bash
 npm install
 ~~~
