@@ -88,5 +88,17 @@
   "galleryBanner": {
     "color": "#C80000",
     "theme": "dark"
-  }
+  },
+  "keywords": [
+    "ftp",
+    "deploy",
+    "upload",
+    "sync"
+  ],
+  "preview": true,
+  "bugs": {
+    "url": "https://github.com/root39293/ftp-mini/issues"
+  },
+  "homepage": "https://github.com/root39293/ftp-mini#readme",
+  "license": "MIT"
 }
