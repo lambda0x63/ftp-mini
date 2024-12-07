@@ -16,14 +16,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "ftp-mini.settings",
-        "title": "FTP Mini: Configure Settings",
-        "category": "FTP Mini"
+        "command": "ftp-mini.configure",
+        "title": "FTP Mini: 연결 설정"
       },
       {
-        "command": "ftp-mini.resetConfig",
-        "title": "FTP Mini: Reset Configuration",
-        "category": "FTP Mini"
+        "command": "ftp-mini.deactivate",
+        "title": "FTP Mini: 연결 비활성화"
       }
     ],
     "configuration": {
@@ -80,5 +78,15 @@
   },
   "dependencies": {
     "basic-ftp": "^5.0.5"
+  },
+  "publisher": "faith6",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/root39293/ftp-mini.git"
+  },
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#C80000",
+    "theme": "dark"
   }
 }

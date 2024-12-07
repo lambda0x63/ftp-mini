@@ -1,8 +1,8 @@
 # FTP Mini
 
-VSCode를 위한 간단한 FTP 배포 확장 프로그램. 웹 개발 실습 환경에 최적화.
+VSCode를 위한 간단한 FTP Extension.
 
-## 주요 기능
+## Features
 
 - FTP 서버 자동 연결 및 파일 배포
 - 파일 저장 시 자동 업로드
@@ -10,47 +10,87 @@ VSCode를 위한 간단한 FTP 배포 확장 프로그램. 웹 개발 실습 환
 - 업로드 실패 시 자동 재시도 (최대 3회)
 - 상태바를 통한 작업 상태 확인
 - 원격 서버와 로컬 파일 동기화 옵션
+- 안정적인 연결 관리 (작업별 독립 연결)
 
-## 설치 방법
+## Installation
 
 1. VSCode 실행
 2. Extensions 탭 열기 (Ctrl+Shift+X or Cmd+Shift+X)
 3. "ftp-mini" 검색
 4. Install 클릭
 
-## 사용 방법
+## Usage
 
-### 초기 설정
+### FTP Connection Setup
 
 1. Command Palette 열기 (Ctrl+Shift+P or Cmd+Shift+P)
-2. "FTP Mini: Configure Settings" 선택
+2. "FTP Mini: 연결 설정" 선택
 3. 필요 정보 입력:
-   - FTP 호스트 주소
+   - FTP 호스트 주소 (예: example.dothome.co.kr)
    - FTP 아이디
    - FTP 비밀번호
    - 원격 작업 디렉토리 (기본값: /html)
+4. 설정 완료 후 원격 서버와 동기화 여부 선택
 
-### 파일 업로드
+### Auto Upload
 
-- 파일 저장 시 자동 업로드
-- 상태바에서 업로드 상태 확인 가능
+- 파일 저장 시 자동으로 FTP 서버에 업로드
+- 상태바에서 업로드 진행 상태 확인 가능
+- 업로드 실패 시 자동으로 최대 3회 재시도
 
-### 설정 초기화
+### Configuration
 
-1. Command Palette 열기
-2. "FTP Mini: Reset Configuration" 선택
-3. 새로운 설정 정보 입력
+- 기존 설정이 있는 경우, 연결 설정 실행 시 재설정 여부 확인
+- 설정 과정 중 언제든 ESC 키로 취소 가능
+- 취소 시 기존 설정 유지
 
-## 주의사항
+### Deactivation
 
-- 기본 원격 디렉토리는 '/html'로 설정
-- 안전한 연결을 위해 FTP 자격 증명 정보는 로컬에 안전하게 저장
-- 네트워크 오류 발생 시 최대 3회 자동 재시도
+- Command Palette에서 "FTP Mini: 연결 비활성화" 선택
+- 확인 후 모든 FTP 설정이 초기화되고 연결이 종료됨
+- 다시 사용하려면 새로 연결 설정을 해야 함
 
-## 버전 정보
+## Support
 
-### 0.1.0
-- 최초 릴리즈
-- 기본 FTP 기능 구현
-- 자동 업로드/삭제 기능
-- 재시도 메커니즘 추가
+- 버그 리포트: GitHub Issues를 통해 제보
+- 기능 제안: GitHub Issues를 통해 제안
+
+## Contributing
+
+### Development Environment Setup
+
+1. 저장소 포크 및 복제
+~~~bash
+git clone https://github.com/root39293/ftp-mini.git
+cd ftp-mini
+~~~
+
+3. 의존성 설치
+~~~bash
+npm install
+~~~
+
+### Local Development
+
+1. 개발 서버 실행
+~~~bash
+npm run watch
+~~~
+
+2. VS Code에서 디버깅
+- F5를 눌러 새 창에서 익스텐션 실행
+- 코드 수정 시 자동으로 다시 컴파일
+
+### How to Contribute
+
+1. 새로운 브랜치 생성
+~~~bash
+git checkout -b feature/feature-name
+~~~
+
+2. 풀 리퀘스트
+- 설명과 함께 PR 생성
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
