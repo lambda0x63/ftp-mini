@@ -2,7 +2,7 @@
   "name": "ftp-mini",
   "displayName": "FTP Mini",
   "description": "Simple FTP deployment for web development",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -95,7 +95,6 @@
     "upload",
     "sync"
   ],
-  "preview": true,
   "bugs": {
     "url": "https://github.com/root39293/ftp-mini/issues"
   },

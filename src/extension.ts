@@ -1,12 +1,13 @@
 import * as vscode from 'vscode';
 import { FTPManager } from './ftpManager'
+import { Logger } from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
+    Logger.initialize();
     const ftpManager = new FTPManager();
     
     // 설정 명령어 (재설정 포함)
     let configureCommand = vscode.commands.registerCommand('ftp-mini.configure', async () => {
-        // 이미 설정이 있는 경우 재설정 여부 확인
         const config = vscode.workspace.getConfiguration('ftpMini');
         const existingHost = config.get('host');
         
@@ -17,8 +18,10 @@ export function activate(context: vscode.ExtensionContext) {
             );
             
             if (answer !== '예') {
+                Logger.log('FTP 재설정이 취소되었습니다.');
                 return;
             }
+            Logger.log('FTP 재설정을 시작합니다.');
         }
         
         await ftpManager.showSetupWizard();
@@ -45,13 +48,19 @@ export function activate(context: vscode.ExtensionContext) {
 
     // 파일 저장 시 자동 업로드
     let saveWatcher = vscode.workspace.onDidSaveTextDocument(document => {
-        ftpManager.uploadFile(document.uri.fsPath);
+        if (ftpManager.isActive()) {
+            Logger.log(`파일 업로드 시작: ${document.uri.fsPath}`);
+            ftpManager.uploadFile(document.uri.fsPath);
+        }
     });
 
     // 파일 삭제 감지
     let deleteWatcher = vscode.workspace.onDidDeleteFiles(async event => {
-        for (const file of event.files) {
-            await ftpManager.deleteFile(file.fsPath);
+        if (ftpManager.isActive()) {
+            for (const file of event.files) {
+                Logger.log(`파일 삭제 시작: ${file.fsPath}`);
+                await ftpManager.deleteFile(file.fsPath);
+            }
         }
     });
 
@@ -61,14 +70,45 @@ export function activate(context: vscode.ExtensionContext) {
     statusBarItem.command = 'ftp-mini.configure';
     statusBarItem.show();
 
+    let showMenuCommand = vscode.commands.registerCommand('ftp-mini.showMenu', async () => {
+        const items = [
+            { label: '$(plug) 연결/재연결', command: 'ftp-mini.reconnect' },
+            { label: '$(gear) 설정', command: 'ftp-mini.configure' },
+            { label: '$(output) 로그 보기', command: 'ftp-mini.showLogs' },
+            { label: '$(sign-out) 연결 해제', command: 'ftp-mini.deactivate' }
+        ];
+
+        const selected = await vscode.window.showQuickPick(items, {
+            placeHolder: 'FTP Mini 메뉴'
+        });
+
+        if (selected) {
+            vscode.commands.executeCommand(selected.command);
+        }
+    });
+
+    let showLogsCommand = vscode.commands.registerCommand('ftp-mini.showLogs', () => {
+        Logger.show();
+    });
+
+    let reconnectCommand = vscode.commands.registerCommand('ftp-mini.reconnect', async () => {
+        await ftpManager.connect();
+    });
+
     context.subscriptions.push(
         configureCommand,
         deactivateCommand,
         saveWatcher,
         deleteWatcher,
         statusBarItem,
-        ftpManager
+        ftpManager,
+        { dispose: () => Logger.dispose() },
+        showMenuCommand,
+        showLogsCommand,
+        reconnectCommand
     );
 }
 
-export function deactivate() {}
+export function deactivate() {
+    Logger.log('FTP Mini 익스텐션이 비활성화되었습니다.');
+}
