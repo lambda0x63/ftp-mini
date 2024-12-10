@@ -226,6 +226,23 @@ export class FTPManager {
             }
 
             const remotePath = this.getRemotePath(localPath);
+            const remoteDir = path.dirname(remotePath);
+
+            // 설정에서 remoteRoot 가져오기
+            const config = vscode.workspace.getConfiguration('ftpMini');
+            const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
+
+            // 루트 디렉토리로 이동
+            await this.client?.cd(remoteRoot);
+
+            // 원격 디렉토리가 루트가 아닌 경우 생성
+            if (remoteDir !== '.') {
+                await this.client?.ensureDir(remoteDir);
+                // 다시 루트로 이동
+                await this.client?.cd(remoteRoot);
+            }
+
+            // 파일 업로드
             await this.client?.uploadFrom(localPath, remotePath);
             
             this.updateStatusBar('연결됨', '✅');
@@ -554,7 +571,19 @@ export class FTPManager {
                 throw new Error('FTP 서버 연결에 실패했습니다.');
             }
 
+            // 설정에서 remoteRoot 가져오기
+            const config = vscode.workspace.getConfiguration('ftpMini');
+            const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
+
+            // 먼저 루트 디렉토리로 이동
+            await this.client?.cd(remoteRoot);
+            
+            // 디렉토리 생성
             await this.client?.ensureDir(remotePath);
+            
+            // 다시 루트 디렉토리로 이동
+            await this.client?.cd(remoteRoot);
+            
             Logger.log(`디렉토리 생성 성공: ${remotePath}`);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
