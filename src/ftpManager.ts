@@ -333,39 +333,51 @@ export class FTPManager {
                 const config = vscode.workspace.getConfiguration('ftpMini');
                 const excludePatterns: string[] = config.get('syncExclude') || ['.git', 'node_modules'];
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-                const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
                 
                 if (!workspaceFolder) {
                     throw new Error('워크스페이스가 열려있지 않습니다.');
                 }
 
-                if (!this.client) {
-                    throw new Error('FTP 클라이언트가 초기화되지 않았습니다.');
-                }
-
-                // 원격 디렉토리로 이동
-                try {
-                    await this.client.cd(remoteRoot);
-                    Logger.log(`원격 디렉토리(${remoteRoot})로 이동했습니다.`);
-                } catch (error) {
-                    Logger.log(`원격 디렉토리(${remoteRoot}) 접근 실패: ${error}`);
-                    throw error;
-                }
-
-                // 원격 파일 목록 가져오기
+                // 원격 파일 및 디렉토리 목록 가져오기
                 Logger.log('원격 서버의 파일 목록을 가져오는 중...');
-                const fileList = await this.listRemoteFiles('');
-                const totalFiles = fileList.length;
-                Logger.log(`총 ${totalFiles}개의 파일이 발견되었습니다.`);
-                let processedFiles = 0;
+                const { files, directories } = await this.listRemoteFiles('');
+                const totalItems = files.length + directories.length;
+                Logger.log(`총 ${files.length}개의 파일과 ${directories.length}개의 디렉토리가 발견되었습니다.`);
+                let processedItems = 0;
 
-                for (const file of fileList) {
+                // 먼저 모든 디렉토리 생성
+                for (const dir of directories) {
                     if (token.isCancellationRequested) {
                         Logger.log('동기화가 취소되었습니다.');
                         break;
                     }
 
-                    // 제외 패턴 확인
+                    if (excludePatterns.some(pattern => dir.includes(pattern))) {
+                        Logger.log(`제외된 디렉토리: ${dir}`);
+                        continue;
+                    }
+
+                    const localDirPath = vscode.Uri.joinPath(workspaceFolder.uri, dir);
+                    try {
+                        await vscode.workspace.fs.createDirectory(localDirPath);
+                        Logger.log(`디렉토리 생성 완료: ${dir}`);
+                        processedItems++;
+                        progress.report({
+                            message: `${processedItems}/${totalItems} 항목 동기화 중...`,
+                            increment: (100 / totalItems)
+                        });
+                    } catch (err) {
+                        Logger.log(`디렉토리 생성 실패: ${dir} - ${err}`);
+                    }
+                }
+
+                // 그 다음 파일 다운로드
+                for (const file of files) {
+                    if (token.isCancellationRequested) {
+                        Logger.log('동기화가 취소되었습니다.');
+                        break;
+                    }
+
                     if (excludePatterns.some(pattern => file.includes(pattern))) {
                         Logger.log(`제외된 파일: ${file}`);
                         continue;
@@ -373,21 +385,13 @@ export class FTPManager {
 
                     try {
                         const localPath = vscode.Uri.joinPath(workspaceFolder.uri, file).fsPath;
-                        
-                        // 로컬 디렉토리 생성
-                        await vscode.workspace.fs.createDirectory(
-                            vscode.Uri.file(path.dirname(localPath))
-                        );
-
-                        // 파일 다운로드
                         Logger.log(`파일 다운로드 시작: ${file} -> ${localPath}`);
-                        await this.client.downloadTo(localPath, file);
-                        processedFiles++;
+                        await this.client?.downloadTo(localPath, file);
+                        processedItems++;
                         
-                        // 진행률 업데이트
                         progress.report({
-                            message: `${processedFiles}/${totalFiles} 파일 동기화 중...`,
-                            increment: (100 / totalFiles)
+                            message: `${processedItems}/${totalItems} 항목 동기화 중...`,
+                            increment: (100 / totalItems)
                         });
                         
                         Logger.log(`파일 다운로드 완료: ${file}`);
@@ -396,7 +400,7 @@ export class FTPManager {
                     }
                 }
 
-                Logger.log(`동기화 완료: 총 ${processedFiles}개 파일이 동기화되었습니다.`);
+                Logger.log(`동기화 완료: 총 ${processedItems}개 항목이 동기화되었습니다.`);
             });
             Logger.log('동기화가 완료되었습니다.');
         } catch (error) {
@@ -408,8 +412,9 @@ export class FTPManager {
         }
     }
 
-    private async listRemoteFiles(currentPath: string): Promise<string[]> {
+    private async listRemoteFiles(currentPath: string): Promise<{files: string[], directories: string[]}> {
         const files: string[] = [];
+        const directories: string[] = [];
         
         try {
             if (!this.client) {
@@ -430,8 +435,10 @@ export class FTPManager {
                 
                 if (item.type === 2) { // 디렉토리
                     Logger.log(`하위 디렉토리 발견: ${itemPath}`);
-                    const subFiles = await this.listRemoteFiles(itemPath);
-                    files.push(...subFiles);
+                    directories.push(itemPath);
+                    const subItems = await this.listRemoteFiles(itemPath);
+                    files.push(...subItems.files);
+                    directories.push(...subItems.directories);
                 } else if (item.type === 1) { // 파일
                     Logger.log(`파일 발견: ${itemPath}`);
                     files.push(itemPath);
@@ -440,10 +447,10 @@ export class FTPManager {
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : String(err);
             Logger.log(`디렉토리 목록 조회 실패 (${currentPath}): ${errorMessage}`);
-            throw err;  // 상위로 에러 전파
+            throw err;
         }
         
-        return files;
+        return { files, directories };
     }
 
     async deleteFile(localPath: string, retryCount = 0): Promise<void> {
@@ -582,9 +589,11 @@ export class FTPManager {
                 }
             }
 
-            // 현재 작업 디렉토리 확인
-            const currentDir = await this.client?.pwd();
-            Logger.log(`현재 작업 디렉토리: ${currentDir}`);
+            // 루트 디렉토리로 이동
+            const config = vscode.workspace.getConfiguration('ftpMini');
+            const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
+            await this.client?.cd(remoteRoot);
+            Logger.log(`루트 디렉토리로 이동: ${remoteRoot}`);
 
             // 파일 이동
             try {

@@ -44,8 +44,8 @@
         },
         "ftpMini.remoteRoot": {
           "type": "string",
-          "default": "html",
-          "description": "원격 작업 디렉토리 (기본값: html)"
+          "default": "/html",
+          "description": "원격 작업 디렉토리 (기본값: /html)"
         },
         "ftpMini.syncOnConnect": {
           "type": "boolean",
