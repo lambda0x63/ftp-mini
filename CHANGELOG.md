@@ -1,9 +1,35 @@
 # Change Log
 
-All notable changes to the "ftp-mini" extension will be documented in this file.
+## [0.3.0] - 2024-12-10
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+### 추가
+- 파일/폴더 이동 및 이름 변경 지원
+- 새 폴더 생성 시 자동 동기화
+- 웹 파일(.html, .css, .js) 업로드 후 브라우저 열기 기능
+- 상태바 Quick Menu 추가
+- 동기화 제외 패턴 설정 기능
+- 로깅 시스템 개선 (2024-12-08)
 
-## [Unreleased]
+### 개선
+- 연결 안정성 향상
+- 에러 메시지 상세화
+- 로그 출력 개선
+- 패키지 구조 개선 (2024-12-07)
 
-- Initial release
+### 버그 수정
+- 파일 업로드 실패 시 재시도 로직 개선
+- 동기화 중 발생하는 오류 처리 강화
+- README.md 오타 및 설명 수정 (2024-12-07)
+- 버전 네이밍 규칙 수정 (2024-12-07)
+- 플레이스홀더 텍스트 수정 (2024-12-07)
+
+## [0.2.0] - 2024-12-06
+
+### 추가
+- FTP 서버 자동 연결
+- 파일 저장 시 자동 업로드
+- 상태바 표시
+- 기본 설정 마법사
+
+## [0.1.0] - 2024-12-06
+- 초기 릴리즈
