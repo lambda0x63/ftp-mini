@@ -2,10 +2,35 @@ import * as vscode from 'vscode';
 import { FTPManager } from './ftpManager'
 import { Logger } from './logger';
 
+declare global {
+    var ftpManager: FTPManager;
+}
+
 export function activate(context: vscode.ExtensionContext) {
     Logger.initialize();
-    const ftpManager = new FTPManager();
     
+    // 시작할 때 모든 설정 초기화
+    const config = vscode.workspace.getConfiguration('ftpMini');
+    Promise.all([
+        config.update('host', undefined, true),
+        config.update('username', undefined, true),
+        config.update('password', undefined, true),
+        config.update('remoteRoot', undefined, true),
+        config.update('syncOnConnect', undefined, true),
+        config.update('syncExclude', undefined, true)
+    ]).then(() => {
+        Logger.log('FTP Mini가 새로 시작되었습니다. 모든 이전 설정이 초기화되었습니다.');
+    });
+
+    const ftpManager = new FTPManager();
+    global.ftpManager = ftpManager;
+    
+    // 상태바 초기화
+    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    statusBarItem.text = "FTP Mini";
+    statusBarItem.command = 'ftp-mini.configure';
+    statusBarItem.show();
+
     // 설정 명령어 (재설정 포함)
     let configureCommand = vscode.commands.registerCommand('ftp-mini.configure', async () => {
         const config = vscode.workspace.getConfiguration('ftpMini');
@@ -64,11 +89,30 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    // 상태바 아이템
-    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarItem.text = "FTP Mini";
-    statusBarItem.command = 'ftp-mini.configure';
-    statusBarItem.show();
+    // 파일 생성 감지 (새 폴더 포함)
+    let createWatcher = vscode.workspace.onDidCreateFiles(async event => {
+        if (ftpManager.isActive()) {
+            for (const file of event.files) {
+                const stat = await vscode.workspace.fs.stat(file);
+                if (stat.type === vscode.FileType.Directory) {
+                    Logger.log(`디렉토리 생성 시작: ${file.fsPath}`);
+                    const remotePath = ftpManager.getRemotePath(file.fsPath);
+                    await ftpManager.createDirectory(remotePath);
+                }
+                // 파일인 경우는 이미 saveWatcher에서 처리됨
+            }
+        }
+    });
+
+    // 파일 이동/이름변경 감지
+    let renameWatcher = vscode.workspace.onDidRenameFiles(async event => {
+        if (ftpManager.isActive()) {
+            for (const file of event.files) {
+                Logger.log(`파일 이동 시작: ${file.oldUri.fsPath} -> ${file.newUri.fsPath}`);
+                await ftpManager.moveFile(file.oldUri.fsPath, file.newUri.fsPath);
+            }
+        }
+    });
 
     let showMenuCommand = vscode.commands.registerCommand('ftp-mini.showMenu', async () => {
         const items = [
@@ -105,10 +149,31 @@ export function activate(context: vscode.ExtensionContext) {
         { dispose: () => Logger.dispose() },
         showMenuCommand,
         showLogsCommand,
-        reconnectCommand
+        reconnectCommand,
+        createWatcher,
+        renameWatcher
     );
 }
 
-export function deactivate() {
-    Logger.log('FTP Mini 익스텐션이 비활성화되었습니다.');
+export async function deactivate() {
+    try {
+        // 전역 상태 저장소 초기화
+        await vscode.workspace.getConfiguration('ftpMini').update('host', undefined, true);
+        await vscode.workspace.getConfiguration('ftpMini').update('username', undefined, true);
+        await vscode.workspace.getConfiguration('ftpMini').update('password', undefined, true);
+        await vscode.workspace.getConfiguration('ftpMini').update('remoteRoot', undefined, true);
+        await vscode.workspace.getConfiguration('ftpMini').update('syncOnConnect', undefined, true);
+        await vscode.workspace.getConfiguration('ftpMini').update('syncExclude', undefined, true);
+
+        // 메모리 상의 모든 FTP 관련 상태 초기화
+        if (global.ftpManager) {
+            await global.ftpManager.deactivate();
+        }
+
+        Logger.log('FTP Mini 익스텐션이 완전히 종료되고 모든 설정이 초기화되었습니다.');
+        Logger.dispose();
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
+        console.error(`FTP Mini 종료 중 오류 발생: ${errorMessage}`);
+    }
 }
