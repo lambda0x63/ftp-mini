@@ -481,10 +481,22 @@ export class FTPManager {
             }
             
             const remotePath = this.getRemotePath(localPath);
-            await this.client?.remove(remotePath);
             
-            this.updateStatusBar('파일 삭제 완료', '✅');
-            Logger.log(`파일 삭제 성공: ${localPath}`);
+            // 파일의 상태를 확인하여 디렉토리인지 파일인지 판단
+            try {
+                const list = await this.client?.list(remotePath);
+                if (list && list.length > 0) {
+                    // 디렉토리인 경우
+                    await this.client?.removeDir(remotePath);
+                    Logger.log(`디렉토리 삭제 성공: ${localPath}`);
+                }
+            } catch {
+                // 파일인 경우
+                await this.client?.remove(remotePath);
+                Logger.log(`파일 삭제 성공: ${localPath}`);
+            }
+            
+            this.updateStatusBar('삭제 완료', '✅');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
             
@@ -495,9 +507,9 @@ export class FTPManager {
                 return this.deleteFile(localPath, retryCount + 1);
             }
 
-            vscode.window.showErrorMessage(`파일 삭제 실패: ${errorMessage}`);
-            this.updateStatusBar('파일 삭제 실패', '❌');
-            Logger.log(`파일 삭제 실패: ${localPath} - ${errorMessage}`);
+            vscode.window.showErrorMessage(`삭제 실패: ${errorMessage}`);
+            this.updateStatusBar('삭제 실패', '❌');
+            Logger.log(`삭제 실패: ${localPath} - ${errorMessage}`);
         } finally {
             if (this.client && !this.isConnected) {
                 await this.client.close();
