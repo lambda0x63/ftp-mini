@@ -1,4 +1,4 @@
-# 컴파일된 �력물
+# 컴파일된 출력물
 out
 dist
 node_modules
@@ -28,7 +28,6 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 yarn.lock
 
 # 테스트 커버리지
