@@ -232,36 +232,40 @@ export class FTPManager {
             const config = vscode.workspace.getConfiguration('ftpMini');
             const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
 
-            // 루트 디렉토리로 이동
-            await this.client?.cd(remoteRoot);
-
-            // 원격 디렉토리가 루트가 아닌 경우 생성
-            if (remoteDir !== '.') {
-                await this.client?.ensureDir(remoteDir);
-                // 다시 루트로 이동
+            try {
+                // 먼저 루트 디렉토리로 이동
                 await this.client?.cd(remoteRoot);
-            }
-
-            // 파일 업로드
-            await this.client?.uploadFrom(localPath, remotePath);
-            
-            this.updateStatusBar('연결됨', '✅');
-            Logger.log(`파일 업로드 성공: ${fileName}`);
-            
-            if (/\.(html|css|js)$/i.test(fileName)) {
-                const config = vscode.workspace.getConfiguration('ftpMini');
-                const host = config.get('host') as string;
-                const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
                 
-                const openInBrowser = await vscode.window.showInformationMessage(
-                    `${fileName} 업로드 완료. 브라우저에서 확인하시겠습니까?`,
-                    '열기'
-                );
-                
-                if (openInBrowser === '열기') {
-                    const url = `http://${host}${remoteRoot}/${remotePath}`;
-                    vscode.env.openExternal(vscode.Uri.parse(url));
+                // 원격 디렉토리 생성 시도 (이미 존재해도 에러 발생하지 않음)
+                if (remoteDir !== '.') {
+                    await this.client?.ensureDir(remoteDir);
+                    // 다시 루트로 이동
+                    await this.client?.cd(remoteRoot);
                 }
+
+                // 파일 업로드
+                await this.client?.uploadFrom(localPath, remotePath);
+                
+                this.updateStatusBar('연결됨', '✅');
+                Logger.log(`파일 업로드 성공: ${fileName}`);
+                
+                if (/\.(html|css|js)$/i.test(fileName)) {
+                    const config = vscode.workspace.getConfiguration('ftpMini');
+                    const host = config.get('host') as string;
+                    const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
+                    
+                    const openInBrowser = await vscode.window.showInformationMessage(
+                        `${fileName} 업로드 완료. 브라우저에서 확인하시겠습니까?`,
+                        '열기'
+                    );
+                    
+                    if (openInBrowser === '열기') {
+                        const url = `http://${host}${remoteRoot}/${remotePath}`;
+                        vscode.env.openExternal(vscode.Uri.parse(url));
+                    }
+                }
+            } catch (error) {
+                throw error;
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
@@ -553,10 +557,12 @@ export class FTPManager {
         }
     }
 
-    // 유효성 검사 함수들 추가
+    // 유효성 검사 함수
     private validateHost(host: string): boolean {
         const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-        const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
+        
+        const domainRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+        
         return ipRegex.test(host) || domainRegex.test(host);
     }
 
@@ -583,17 +589,13 @@ export class FTPManager {
                 throw new Error('FTP 서버 연결에 실패했습니다.');
             }
 
-            // 설정에서 remoteRoot 가져오기
             const config = vscode.workspace.getConfiguration('ftpMini');
             const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
 
-            // 먼저 루트 디렉토리로 이동
             await this.client?.cd(remoteRoot);
             
-            // 디렉토리 생성
             await this.client?.ensureDir(remotePath);
             
-            // 다시 루트 디렉토리로 이동
             await this.client?.cd(remoteRoot);
             
             Logger.log(`디렉토리 생성 성공: ${remotePath}`);
@@ -619,7 +621,6 @@ export class FTPManager {
             
             Logger.log(`원격 파일 이동: ${oldRemotePath} -> ${newRemotePath}`);
 
-            // 새 디렉토리 경로 생성
             const newDir = path.dirname(newRemotePath);
             if (newDir !== '.') {
                 try {
@@ -630,32 +631,24 @@ export class FTPManager {
                 }
             }
 
-            // 루트 디렉토리로 이동
             const config = vscode.workspace.getConfiguration('ftpMini');
             const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
             await this.client?.cd(remoteRoot);
             Logger.log(`루트 디렉토리로 이동: ${remoteRoot}`);
 
-            // 파일 이동
             try {
                 await this.client?.rename(oldRemotePath, newRemotePath);
                 Logger.log(`파일 이동 성공: ${oldRemotePath} -> ${newRemotePath}`);
                 this.updateStatusBar('파일 이동 완료', '✅');
             } catch (error) {
-                // 이동 실패 시 복사 후 삭제 시도
                 Logger.log(`rename 실패, 복사 후 삭제 시도: ${error}`);
                 
-                // 임시 파일 경로 생성
                 const tempFilePath = path.join(os.tmpdir(), `ftp-mini-${Date.now()}`);
                 
                 try {
-                    // 파일 다운로드
                     await this.client?.downloadTo(tempFilePath, oldRemotePath);
-                    // 파일 업로드
                     await this.client?.uploadFrom(tempFilePath, newRemotePath);
-                    // 원본 파일 삭제
                     await this.client?.remove(oldRemotePath);
-                    // 임시 파일 삭제
                     await fs.promises.unlink(tempFilePath);
                     
                     Logger.log(`복사 후 삭제 방식으로 이동 완료`);
@@ -677,6 +670,98 @@ export class FTPManager {
             this.updateStatusBar('파일 이동 실패', '❌');
             Logger.log(`파일 이동 실패: ${oldPath} -> ${newPath} - ${errorMessage}`);
             vscode.window.showErrorMessage(`파일 이동 실패: ${errorMessage}`);
+        }
+    }
+
+    private async syncDirectory(localDirPath: string): Promise<void> {
+        try {
+            if (!this.isEnabled || !this.client) {
+                return;
+            }
+
+            Logger.log(`디렉토리 동기화 시작: ${localDirPath}`);
+            
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            if (!workspaceFolder) {
+                throw new Error('워크스페이스가 열려있지 않습니다.');
+            }
+
+            const remoteDirPath = this.getRemotePath(localDirPath);
+            
+            await this.ensureRemoteDirectory(remoteDirPath);
+
+            const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(localDirPath));
+            
+            for (const [name, type] of files) {
+                const localPath = path.join(localDirPath, name);
+                
+                if (type === vscode.FileType.Directory) {
+                    await this.syncDirectory(localPath);
+                } else {
+                    await this.syncFile(localPath);
+                }
+            }
+            
+            Logger.log(`디렉토리 동기화 완료: ${localDirPath}`);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            Logger.log(`디렉토리 동기화 실패: ${localDirPath} - ${errorMessage}`);
+            throw error;
+        }
+    }
+
+    private async syncFile(localPath: string): Promise<void> {
+        try {
+            const remotePath = this.getRemotePath(localPath);
+            
+            const localStat = await vscode.workspace.fs.stat(vscode.Uri.file(localPath));
+            
+            try {
+                const remoteSize = await this.getRemoteFileSize(remotePath);
+                
+                if (localStat.size !== remoteSize) {
+                    Logger.log(`파일 크기 불일치. 업로드 시작: ${localPath}`);
+                    await this.uploadFile(localPath);
+                }
+            } catch (error) {
+                Logger.log(`새 파일 업로드: ${localPath}`);
+                await this.uploadFile(localPath);
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            Logger.log(`파일 동기화 실패: ${localPath} - ${errorMessage}`);
+            throw error;
+        }
+    }
+
+    private async getRemoteFileSize(remotePath: string): Promise<number> {
+        try {
+            const list = await this.client?.list(remotePath);
+            if (!list || list.length === 0) {
+                throw new Error('파일을 찾을 수 없습니다.');
+            }
+            return list[0].size;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    private async ensureRemoteDirectory(remotePath: string): Promise<void> {
+        try {
+            const config = vscode.workspace.getConfiguration('ftpMini');
+            const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
+            
+            await this.client?.cd(remoteRoot);
+            
+            await this.client?.ensureDir(remotePath);
+            
+            await this.client?.cd(remoteRoot);
+            
+            Logger.log(`원격 디렉토리 생성/확인 완료: ${remotePath}`);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            Logger.log(`원격 디렉토리 생성 실패: ${remotePath} - ${errorMessage}`);
+            throw error;
         }
     }
 }
