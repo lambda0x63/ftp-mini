@@ -14,6 +14,8 @@ export class FTPManager {
     private readonly MAX_RETRY_ATTEMPTS = 3;
     private readonly RETRY_DELAY = 1000;
     private isUploading: boolean = false;
+    private uploadQueue: Array<{localPath: string, retryCount: number}> = [];
+    private isProcessingQueue = false;
 
     constructor() {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -205,87 +207,83 @@ export class FTPManager {
     }
 
     async uploadFile(localPath: string, retryCount = 0): Promise<void> {
-        if (!this.isEnabled || this.isUploading) {
+        // 큐에 추가
+        this.uploadQueue.push({localPath, retryCount});
+        
+        // 큐 처리가 실행 중이 아니라면 시작
+        if (!this.isProcessingQueue) {
+            await this.processQueue();
+        }
+    }
+
+    // 큐 처리를 위한 새로운 private 메서드
+    private async processQueue(): Promise<void> {
+        if (this.isProcessingQueue || this.uploadQueue.length === 0) {
             return;
         }
 
-        const fileName = path.basename(localPath);
-        
+        this.isProcessingQueue = true;
+
         try {
-            this.isUploading = true;
-            
-            const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-            if (!workspacePath || !localPath.startsWith(workspacePath)) {
-                return;
-            }
+            while (this.uploadQueue.length > 0) {
+                const {localPath, retryCount} = this.uploadQueue[0];
+                const fileName = path.basename(localPath);
 
-            this.updateStatusBar('업로드 중', '🔄');
-            
-            if (!await this.ensureConnection()) {
-                throw new Error('FTP 서버 연결에 실패했습니다.');
-            }
-
-            const remotePath = this.getRemotePath(localPath);
-            const remoteDir = path.dirname(remotePath);
-
-            // 설정에서 remoteRoot 가져오기
-            const config = vscode.workspace.getConfiguration('ftpMini');
-            const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
-
-            try {
-                // 먼저 루트 디렉토리로 이동
-                await this.client?.cd(remoteRoot);
-                
-                // 원격 디렉토리 생성 시도 (이미 존재해도 에러 발생하지 않음)
-                if (remoteDir !== '.') {
-                    await this.client?.ensureDir(remoteDir);
-                    // 다시 루트로 이동
-                    await this.client?.cd(remoteRoot);
-                }
-
-                // 파일 업로드
-                await this.client?.uploadFrom(localPath, remotePath);
-                
-                this.updateStatusBar('연결됨', '✅');
-                Logger.log(`파일 업로드 성공: ${fileName}`);
-                
-                if (/\.(html|css|js)$/i.test(fileName)) {
-                    const config = vscode.workspace.getConfiguration('ftpMini');
-                    const host = config.get('host') as string;
-                    const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
-                    
-                    const openInBrowser = await vscode.window.showInformationMessage(
-                        `${fileName} 업로드 완료. 브라우저에서 확인하시겠습니까?`,
-                        '열기'
-                    );
-                    
-                    if (openInBrowser === '열기') {
-                        const url = `http://${host}${remoteRoot}/${remotePath}`;
-                        vscode.env.openExternal(vscode.Uri.parse(url));
+                try {
+                    if (!this.isEnabled) {
+                        this.uploadQueue.shift();
+                        continue;
                     }
-                }
-            } catch (error) {
-                throw error;
-            }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
-            
-            if (errorMessage.includes('control socket') && retryCount < this.MAX_RETRY_ATTEMPTS) {
-                Logger.log(`연결 재시도 중... (${retryCount + 1}/${this.MAX_RETRY_ATTEMPTS})`);
-                this.client = null;
-                await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
-                return this.uploadFile(localPath, retryCount + 1);
-            }
 
-            this.updateStatusBar('연결 실패', '❌');
-            Logger.log(`파일 업로드 실패: ${fileName} - ${errorMessage}`);
-            vscode.window.showErrorMessage(`${fileName} 업로드 실패: ${errorMessage}`);
-        } finally {
-            this.isUploading = false;
-            if (this.client && !this.isConnected) {
-                await this.client.close();
-                this.client = null;
+                    this.updateStatusBar('업로드 중', '🔄');
+                    
+                    if (!await this.ensureConnection()) {
+                        throw new Error('FTP 서버 연결에 실패했습니다.');
+                    }
+
+                    const remotePath = this.getRemotePath(localPath);
+                    const remoteDir = path.dirname(remotePath);
+
+                    // 설정에서 remoteRoot 가져오기
+                    const config = vscode.workspace.getConfiguration('ftpMini');
+                    const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
+
+                    // 먼저 루트 디렉토리로 이동
+                    await this.client?.cd(remoteRoot);
+                    
+                    // 원격 디렉토리 생성 시도
+                    if (remoteDir !== '.') {
+                        await this.client?.ensureDir(remoteDir);
+                        await this.client?.cd(remoteRoot);
+                    }
+
+                    // 파일 업로드
+                    await this.client?.uploadFrom(localPath, remotePath);
+                    
+                    this.updateStatusBar('연결됨', '✅');
+                    Logger.log(`파일 업로드 성공: ${fileName}`);
+
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
+                    
+                    if (errorMessage.includes('control socket') && retryCount < this.MAX_RETRY_ATTEMPTS) {
+                        Logger.log(`연결 재시도 중... (${retryCount + 1}/${this.MAX_RETRY_ATTEMPTS})`);
+                        this.client = null;
+                        await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
+                        this.uploadQueue[0].retryCount++;
+                        continue;
+                    }
+
+                    this.updateStatusBar('연결 실패', '❌');
+                    Logger.log(`파일 업로드 실패: ${fileName} - ${errorMessage}`);
+                    vscode.window.showErrorMessage(`${fileName} 업로드 실패: ${errorMessage}`);
+                }
+
+                // 처리 완료된 항목 제거
+                this.uploadQueue.shift();
             }
+        } finally {
+            this.isProcessingQueue = false;
         }
     }
 

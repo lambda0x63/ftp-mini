@@ -2,9 +2,16 @@ import * as vscode from 'vscode';
 import { FTPManager } from './ftpManager'
 import { Logger } from './logger';
 
+// NodeJS의 global 타입 확장
 declare global {
-    var ftpManager: FTPManager;
+    namespace NodeJS {
+        interface Global {
+            ftpManager: FTPManager;
+        }
+    }
 }
+
+const g = globalThis as unknown as NodeJS.Global;
 
 export function activate(context: vscode.ExtensionContext) {
     Logger.initialize();
@@ -23,7 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const ftpManager = new FTPManager();
-    global.ftpManager = ftpManager;
+    g.ftpManager = ftpManager;
     
     // 상태바 초기화
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -66,13 +73,13 @@ export function activate(context: vscode.ExtensionContext) {
             await config.update('password', undefined, true);
             await config.update('remoteRoot', undefined, true);
             
-            ftpManager.deactivate();
+            await ftpManager.deactivate();
             vscode.window.showInformationMessage('FTP 연결이 비활성화되었습니다.');
         }
     });
 
     // 파일 저장 시 자동 업로드
-    let saveWatcher = vscode.workspace.onDidSaveTextDocument(document => {
+    let saveWatcher = vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
         if (ftpManager.isActive()) {
             Logger.log(`파일 업로드 시작: ${document.uri.fsPath}`);
             ftpManager.uploadFile(document.uri.fsPath);
@@ -80,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     // 파일 삭제 감지
-    let deleteWatcher = vscode.workspace.onDidDeleteFiles(async event => {
+    let deleteWatcher = vscode.workspace.onDidDeleteFiles(async (event: vscode.FileDeleteEvent) => {
         if (ftpManager.isActive()) {
             for (const file of event.files) {
                 Logger.log(`파일 삭제 시작: ${file.fsPath}`);
@@ -90,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     // 파일 생성 감지 (새 폴더 포함)
-    let createWatcher = vscode.workspace.onDidCreateFiles(async event => {
+    let createWatcher = vscode.workspace.onDidCreateFiles(async (event: vscode.FileCreateEvent) => {
         if (ftpManager.isActive()) {
             for (const file of event.files) {
                 const stat = await vscode.workspace.fs.stat(file);
@@ -98,14 +105,17 @@ export function activate(context: vscode.ExtensionContext) {
                     Logger.log(`디렉토리 생성 시작: ${file.fsPath}`);
                     const remotePath = ftpManager.getRemotePath(file.fsPath);
                     await ftpManager.createDirectory(remotePath);
+                } else {
+                    // 파일인 경우 직접 업로드 처리
+                    Logger.log(`새 파일 생성 감지: ${file.fsPath}`);
+                    await ftpManager.uploadFile(file.fsPath);
                 }
-                // 파일인 경우는 이미 saveWatcher에서 처리됨
             }
         }
     });
 
     // 파일 이동/이름변경 감지
-    let renameWatcher = vscode.workspace.onDidRenameFiles(async event => {
+    let renameWatcher = vscode.workspace.onDidRenameFiles(async (event: vscode.FileRenameEvent) => {
         if (ftpManager.isActive()) {
             for (const file of event.files) {
                 Logger.log(`파일 이동 시작: ${file.oldUri.fsPath} -> ${file.newUri.fsPath}`);
@@ -166,14 +176,14 @@ export async function deactivate() {
         await vscode.workspace.getConfiguration('ftpMini').update('syncExclude', undefined, true);
 
         // 메모리 상의 모든 FTP 관련 상태 초기화
-        if (global.ftpManager) {
-            await global.ftpManager.deactivate();
+        if (g.ftpManager) {
+            await g.ftpManager.deactivate();
         }
 
         Logger.log('FTP Mini 익스텐션이 완전히 종료되고 모든 설정이 초기화되었습니다.');
         Logger.dispose();
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
-        console.error(`FTP Mini 종료 중 오류 발생: ${errorMessage}`);
+        Logger.log(`FTP Mini 종료 중 오류 발생: ${errorMessage}`);
     }
 }
