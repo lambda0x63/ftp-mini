@@ -1,9 +1,13 @@
-# FTP Mini
+<h1 align="center">
+	<img src="https://github.com/user-attachments/assets/fe407108-3a8d-411f-aa82-7ea6c39ae2b7" width="150px"><br>
+    FTP Mini
+</h1>
+<p align="center">
+	Simple FTP Extension for VSCode.
+</p>
 
-![Image](https://github.com/user-attachments/assets/fe407108-3a8d-411f-aa82-7ea6c39ae2b7)
+<h2 align="left">Features</h2>
 
-Simple FTP Extension for VSCode.
-## Features
 - Automatic FTP server connection and file deployment
 - Automatic upload when saving files
 - Server synchronization when deleting files
@@ -14,13 +18,18 @@ Simple FTP Extension for VSCode.
 - Remote server and local file synchronization options
 - Reliable connection management (independent connections per task)
 - Option to open browser after uploading web files (.html, .css, .js)
-## Installation
+
+<h2 align="left">Installation</h2>
+
 1. Launch VSCode
 2. Open Extensions tab (Ctrl+Shift+X or Cmd+Shift+X)
 3. Search for "ftp-mini"
 4. Click Install
-## Usage
-### FTP Connection Setup
+
+<h2 align="left">Usage</h2>
+
+<h3 align="left">FTP Connection Setup</h3>
+
 1. Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
 2. Select "FTP Mini: Configure Connection"
 3. Enter required information:
@@ -29,58 +38,79 @@ Simple FTP Extension for VSCode.
   - FTP password
   - Remote working directory (default: /html)
 4. Choose whether to synchronize with remote server after setup
-### Auto Upload
+
+<h3 align="left">Auto Upload</h3>
+
 - Files are automatically uploaded to the FTP server when saved
 - Upload progress status can be checked in the status bar
 - Automatic retry up to 3 times on upload failure
 - Web files can be immediately checked in browser after upload
-### File Operations
+
+<h3 align="left">File Operations</h3>
+
 - Automatic synchronization when moving and renaming files/folders
 - New folders are automatically created on the remote server
 - Files are automatically deleted from the remote server when deleted locally
-### Quick Menu
+
+<h3 align="left">Quick Menu</h3>
+
 Click the FTP Mini icon in the status bar to access the following menu:
 - Connect/Reconnect
 - Settings
 - View Logs
 - Disconnect
-### Configuration
+
+<h3 align="left">Configuration</h3>
+
 - If existing settings are present, confirmation to reconfigure when running connection setup
 - Setup process can be canceled at any time with ESC key
 - Existing settings are retained when canceled
 - Synchronization exclusion patterns can be configured (defaults: .git, node_modules)
-### Deactivation
+
+<h3 align="left">Deactivation</h3>
+
 - Select "FTP Mini: Deactivate Connection" from Command Palette
 - After confirmation, all FTP settings are reset and connection is terminated
 - New connection setup is required to use again
-## Support
+
+<h2 align="left">Support</h2>
+
 - Bug reports: Report via GitHub Issues
 - Feature suggestions: Suggest via GitHub Issues
-## Contributing
-### Development Environment Setup
+
+<h2 align="left">Contributing</h2>
+
+<h3 align="left">Development Environment Setup</h3>
+
 1. Fork and clone the repository
-~~~bash
+```bash
 git clone https://github.com/root39293/ftp-mini.git
 cd ftp-mini
-~~~
+```
 2. Install dependencies
-~~~bash
+```bash
 npm install
-~~~
-### Local Development
+```
+
+<h3 align="left">Local Development</h3>
+
 1. Run development server
-~~~bash
+```bash
 npm run watch
-~~~
+```
 2. Debugging in VS Code
 - Press F5 to launch extension in a new window
 - Code changes are automatically recompiled
-### How to Contribute
+
+<h3 align="left">How to Contribute</h3>
+
 1. Create a new branch
-~~~bash
+```bash
 git checkout -b feature/feature-name
-~~~
+```
 2. Pull Request
 - Create PR with description
-## License
+
+<h2 align="left">License</h2>
+
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
