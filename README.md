@@ -1,115 +1,83 @@
 # FTP Mini
-
-VSCode를 위한 간단한 FTP Extension.
-
+Simple FTP Extension for VSCode.
 ## Features
-
-- FTP 서버 자동 연결 및 파일 배포
-- 파일 저장 시 자동 업로드
-- 파일 삭제 시 서버 동기화
-- 파일/폴더 이동 및 이름 변경 지원
-- 새 폴더 생성 시 자동 동기화
-- 업로드 실패 시 자동 재시도 (최대 3회)
-- 상태바를 통한 작업 상태 확인
-- 원격 서버와 로컬 파일 동기화 옵션
-- 안정적인 연결 관리 (작업별 독립 연결)
-- 웹 파일(.html, .css, .js) 업로드 후 브라우저 열기 옵션
-
+- Automatic FTP server connection and file deployment
+- Automatic upload when saving files
+- Server synchronization when deleting files
+- Support for moving and renaming files/folders
+- Automatic synchronization when creating new folders
+- Automatic retry on upload failure (up to 3 times)
+- Work status check via status bar
+- Remote server and local file synchronization options
+- Reliable connection management (independent connections per task)
+- Option to open browser after uploading web files (.html, .css, .js)
 ## Installation
-
-1. VSCode 실행
-2. Extensions 탭 열기 (Ctrl+Shift+X or Cmd+Shift+X)
-3. "ftp-mini" 검색
-4. Install 클릭
-
+1. Launch VSCode
+2. Open Extensions tab (Ctrl+Shift+X or Cmd+Shift+X)
+3. Search for "ftp-mini"
+4. Click Install
 ## Usage
-
 ### FTP Connection Setup
-
-1. Command Palette 열기 (Ctrl+Shift+P or Cmd+Shift+P)
-2. "FTP Mini: 연결 설정" 선택
-3. 필요 정보 입력:
-   - FTP 호스트 주소 (예: example.dothome.co.kr)
-   - FTP 아이디
-   - FTP 비밀번호
-   - 원격 작업 디렉토리 (기본값: /html)
-4. 설정 완료 후 원격 서버와 동기화 여부 선택
-
+1. Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
+2. Select "FTP Mini: Configure Connection"
+3. Enter required information:
+  - FTP host address (example: example.dothome.co.kr)
+  - FTP username
+  - FTP password
+  - Remote working directory (default: /html)
+4. Choose whether to synchronize with remote server after setup
 ### Auto Upload
-
-- 파일 저장 시 자동으로 FTP 서버에 업로드
-- 상태바에서 업로드 진행 상태 확인 가능
-- 업로드 실패 시 자동으로 최대 3회 재시도
-- 웹 파일 업로드 후 브라우저에서 바로 확인 가능
-
+- Files are automatically uploaded to the FTP server when saved
+- Upload progress status can be checked in the status bar
+- Automatic retry up to 3 times on upload failure
+- Web files can be immediately checked in browser after upload
 ### File Operations
-
-- 파일/폴더 이동 및 이름 변경 시 자동 동기화
-- 새 폴더 생성 시 자동으로 원격 서버에 생성
-- 파일 삭제 시 원격 서버에서도 자동 삭제
-
+- Automatic synchronization when moving and renaming files/folders
+- New folders are automatically created on the remote server
+- Files are automatically deleted from the remote server when deleted locally
 ### Quick Menu
-
-상태바의 FTP Mini 아이콘 클릭 시 다음 메뉴 사용 가능:
-- 연결/재연결
-- 설정
-- 로그 보기
-- 연결 해제
-
+Click the FTP Mini icon in the status bar to access the following menu:
+- Connect/Reconnect
+- Settings
+- View Logs
+- Disconnect
 ### Configuration
-
-- 기존 설정이 있는 경우, 연결 설정 실행 시 재설정 여부 확인
-- 설정 과정 중 언제든 ESC 키로 취소 가능
-- 취소 시 기존 설정 유지
-- 동기화 제외 패턴 설정 가능 (기본값: .git, node_modules)
-
+- If existing settings are present, confirmation to reconfigure when running connection setup
+- Setup process can be canceled at any time with ESC key
+- Existing settings are retained when canceled
+- Synchronization exclusion patterns can be configured (defaults: .git, node_modules)
 ### Deactivation
-
-- Command Palette에서 "FTP Mini: 연결 비활성화" 선택
-- 확인 후 모든 FTP 설정이 초기화되고 연결이 종료됨
-- 다시 사용하려면 새로 연결 설정을 해야 함
-
+- Select "FTP Mini: Deactivate Connection" from Command Palette
+- After confirmation, all FTP settings are reset and connection is terminated
+- New connection setup is required to use again
 ## Support
-
-- 버그 리포트: GitHub Issues를 통해 제보
-- 기능 제안: GitHub Issues를 통해 제안
-
+- Bug reports: Report via GitHub Issues
+- Feature suggestions: Suggest via GitHub Issues
 ## Contributing
-
 ### Development Environment Setup
-
-1. 저장소 포크 및 복제
+1. Fork and clone the repository
 ~~~bash
 git clone https://github.com/root39293/ftp-mini.git
 cd ftp-mini
 ~~~
-
-2. 의존성 설치
+2. Install dependencies
 ~~~bash
 npm install
 ~~~
-
 ### Local Development
-
-1. 개발 서버 실행
+1. Run development server
 ~~~bash
 npm run watch
 ~~~
-
-2. VS Code에서 디버깅
-- F5를 눌러 새 창에서 익스텐션 실행
-- 코드 수정 시 자동으로 다시 컴파일
-
+2. Debugging in VS Code
+- Press F5 to launch extension in a new window
+- Code changes are automatically recompiled
 ### How to Contribute
-
-1. 새로운 브랜치 생성
+1. Create a new branch
 ~~~bash
 git checkout -b feature/feature-name
 ~~~
-
-2. 풀 리퀘스트
-- 설명과 함께 PR 생성
-
+2. Pull Request
+- Create PR with description
 ## License
-
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
