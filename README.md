@@ -1,5 +1,5 @@
 # FTP Mini
-![Image](https://github.com/user-attachments/assets/1533d917-7293-4378-9ff2-300c7538c722)
+![Image](https://github.com/user-attachments/assets/fe407108-3a8d-411f-aa82-7ea6c39ae2b7)
 Simple FTP Extension for VSCode.
 ## Features
 - Automatic FTP server connection and file deployment
