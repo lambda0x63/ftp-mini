@@ -32,6 +32,11 @@
           "default": "",
           "description": "FTP 호스트 주소"
         },
+        "ftpMini.port": {
+          "type": "string",
+          "default": "21",
+          "description": "FTP 포트 번호 (기본값: 21)"
+        },
         "ftpMini.username": {
           "type": "string",
           "default": "",

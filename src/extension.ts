@@ -20,6 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
     const config = vscode.workspace.getConfiguration('ftpMini');
     Promise.all([
         config.update('host', undefined, true),
+        config.update('port', undefined, true),
         config.update('username', undefined, true),
         config.update('password', undefined, true),
         config.update('remoteRoot', undefined, true),

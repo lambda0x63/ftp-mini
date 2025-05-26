@@ -11,6 +11,7 @@ export class FTPManager {
     private isConnected: boolean = false;
     private isEnabled: boolean = false;
     private readonly DEFAULT_REMOTE_ROOT = '/html';
+    private readonly DEFAULT_PORT = '21';
     private readonly MAX_RETRY_ATTEMPTS = 3;
     private readonly RETRY_DELAY = 1000;
     private isUploading: boolean = false;
@@ -43,6 +44,27 @@ export class FTPManager {
             Logger.log('FTP 설정이 취소되었습니다.');
             return;
         }
+
+        // 포트 입력
+        const port = await vscode.window.showInputBox({
+            prompt: 'FTP 포트 번호를 입력하세요',
+            placeHolder: '기본값: 21',
+            value: await this.getCurrentSetting('port') || this.DEFAULT_PORT,
+            validateInput: (value) => {
+                if (!value) return null; // 빈 값 허용 (기본값 사용)
+                if (!this.validatePort(value)) return '올바른 포트 번호를 입력하세요 (1-65535)';
+                return null;
+            }
+        });
+
+        if (port === undefined) {
+            Logger.log('FTP 설정이 취소되었습니다.');
+            return;
+        }
+
+        // 포트 값이 비어있으면 기본값 사용
+        const finalPort = port.trim() || this.DEFAULT_PORT;
+        Logger.log(`포트 설정: ${finalPort} (${port.trim() ? '사용자 지정' : '기본값'})`);
 
         // 사용자 이름 입력
         const username = await vscode.window.showInputBox({
@@ -96,12 +118,14 @@ export class FTPManager {
         // 설정 저장
         const config = vscode.workspace.getConfiguration('ftpMini');
         await config.update('host', host, true);
+        await config.update('port', finalPort, true);
         await config.update('username', username, true);
         await config.update('password', password, true);
         await config.update('remoteRoot', remoteRoot, true);
 
         Logger.log('FTP 설정이 저장되었습니다:');
         Logger.log(`- 호스트: ${host}`);
+        Logger.log(`- 포트: ${finalPort}`);
         Logger.log(`- 사용자: ${username}`);
         Logger.log(`- 원격 디렉토리: ${remoteRoot}`);
 
@@ -140,6 +164,7 @@ export class FTPManager {
             
             const config = vscode.workspace.getConfiguration('ftpMini');
             const host = config.get('host') as string;
+            const port = config.get('port', this.DEFAULT_PORT) as string;
             const username = config.get('username') as string;
             const password = config.get('password') as string;
             const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
@@ -150,13 +175,14 @@ export class FTPManager {
                 throw new Error('FTP 설정이 완료되지 않았습니다. 설정을 먼저 진행해주세요.');
             }
 
-            Logger.log(`FTP 서버에 연결 시도 중... (${host})`);
+            Logger.log(`FTP 서버에 연결 시도 중... (${host}:${port})`);
             
             this.client = new ftp.Client();
             this.client.ftp.verbose = true;
 
             await this.client.access({
                 host,
+                port: parseInt(port),
                 user: username,
                 password,
                 secure: false
@@ -535,6 +561,7 @@ export class FTPManager {
             // 모든 설정 초기화
             const config = vscode.workspace.getConfiguration('ftpMini');
             await config.update('host', undefined, true);
+            await config.update('port', undefined, true);
             await config.update('username', undefined, true);
             await config.update('password', undefined, true);
             await config.update('remoteRoot', undefined, true);
