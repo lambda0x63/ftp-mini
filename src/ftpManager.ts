@@ -4,9 +4,11 @@ import { Logger } from './logger';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
+import { SFTPManager } from './sftpManager';
 
 export class FTPManager {
     private client: ftp.Client | null = null;
+    private sftpManager: SFTPManager | null = null;
     private statusBar: vscode.StatusBarItem;
     private isConnected: boolean = false;
     private isEnabled: boolean = false;
@@ -17,6 +19,7 @@ export class FTPManager {
     private isUploading: boolean = false;
     private uploadQueue: Array<{localPath: string, retryCount: number}> = [];
     private isProcessingQueue = false;
+    private protocol: 'ftp' | 'sftp' = 'ftp';
 
     constructor() {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -26,11 +29,24 @@ export class FTPManager {
     }
 
     async showSetupWizard() {
-        Logger.log('FTP 설정 마법사 시작');
+        Logger.log('FTP/SFTP 설정 마법사 시작');
+        
+        // 프로토콜 선택
+        const protocol = await vscode.window.showQuickPick(['FTP', 'SFTP'], {
+            placeHolder: '연결 프로토콜을 선택하세요',
+            canPickMany: false
+        });
+
+        if (!protocol) {
+            Logger.log('FTP/SFTP 설정이 취소되었습니다.');
+            return;
+        }
+
+        this.protocol = protocol.toLowerCase() as 'ftp' | 'sftp';
         
         // 호스트 입력
         const host = await vscode.window.showInputBox({
-            prompt: 'FTP 서버 주소를 입력하세요',
+            prompt: `${protocol} 서버 주소를 입력하세요`,
             placeHolder: 'ftp.myschool.com 또는 IP 주소',
             value: await this.getCurrentSetting('host') || '',
             validateInput: (value) => {
@@ -41,15 +57,16 @@ export class FTPManager {
         });
 
         if (!host) {
-            Logger.log('FTP 설정이 취소되었습니다.');
+            Logger.log('FTP/SFTP 설정이 취소되었습니다.');
             return;
         }
 
         // 포트 입력
+        const defaultPort = this.protocol === 'sftp' ? '22' : '21';
         const port = await vscode.window.showInputBox({
-            prompt: 'FTP 포트 번호를 입력하세요',
-            placeHolder: '기본값: 21',
-            value: await this.getCurrentSetting('port') || this.DEFAULT_PORT,
+            prompt: `${protocol} 포트 번호를 입력하세요`,
+            placeHolder: `기본값: ${defaultPort}`,
+            value: await this.getCurrentSetting('port') || defaultPort,
             validateInput: (value) => {
                 if (!value) return null; // 빈 값 허용 (기본값 사용)
                 if (!this.validatePort(value)) return '올바른 포트 번호를 입력하세요 (1-65535)';
@@ -58,17 +75,17 @@ export class FTPManager {
         });
 
         if (port === undefined) {
-            Logger.log('FTP 설정이 취소되었습니다.');
+            Logger.log('FTP/SFTP 설정이 취소되었습니다.');
             return;
         }
 
         // 포트 값이 비어있으면 기본값 사용
-        const finalPort = port.trim() || this.DEFAULT_PORT;
+        const finalPort = port.trim() || defaultPort;
         Logger.log(`포트 설정: ${finalPort} (${port.trim() ? '사용자 지정' : '기본값'})`);
 
         // 사용자 이름 입력
         const username = await vscode.window.showInputBox({
-            prompt: 'FTP 계정의 사용자 이름을 입력하세요',
+            prompt: `${protocol} 계정의 사용자 이름을 입력하세요`,
             placeHolder: 'username',
             value: await this.getCurrentSetting('username') || '',
             validateInput: (value) => {
@@ -78,13 +95,13 @@ export class FTPManager {
         });
 
         if (!username) {
-            Logger.log('FTP 설정이 취소되었습니다.');
+            Logger.log('FTP/SFTP 설정이 취소되었습니다.');
             return;
         }
 
         // 비밀번호 입력
         const password = await vscode.window.showInputBox({
-            prompt: 'FTP 계정의 비밀번호를 입력하세요',
+            prompt: `${protocol} 계정의 비밀번호를 입력하세요`,
             value: await this.getCurrentSetting('password') || '',
             validateInput: (value) => {
                 if (!value) return '비밀번호는 필수입니다';
@@ -93,7 +110,7 @@ export class FTPManager {
         });
 
         if (!password) {
-            Logger.log('FTP 설정이 취소되었습니다.');
+            Logger.log('FTP/SFTP 설정이 취소되었습니다.');
             return;
         }
 
@@ -111,19 +128,21 @@ export class FTPManager {
         });
 
         if (!remoteRoot) {
-            Logger.log('FTP 설정이 취소되었습니다.');
+            Logger.log('FTP/SFTP 설정이 취소되었습니다.');
             return;
         }
 
         // 설정 저장
         const config = vscode.workspace.getConfiguration('ftpMini');
+        await config.update('protocol', this.protocol, true);
         await config.update('host', host, true);
         await config.update('port', finalPort, true);
         await config.update('username', username, true);
         await config.update('password', password, true);
         await config.update('remoteRoot', remoteRoot, true);
 
-        Logger.log('FTP 설정이 저장되었습니다:');
+        Logger.log('FTP/SFTP 설정이 저장되었습니다:');
+        Logger.log(`- 프로토콜: ${this.protocol.toUpperCase()}`);
         Logger.log(`- 호스트: ${host}`);
         Logger.log(`- 포트: ${finalPort}`);
         Logger.log(`- 사용자: ${username}`);
@@ -133,14 +152,14 @@ export class FTPManager {
         const connected = await this.connect();
         if (connected) {
             this.isEnabled = true;
-            Logger.log('FTP 서버에 성공적으로 연결되었습니다.');
+            Logger.log(`${this.protocol.toUpperCase()} 서버에 성공적으로 연결되었습니다.`);
             
             // 동기화 바로 시작
             Logger.log('파일 동기화를 시작합니다...');
             await this.initialSync();
 
             Logger.show();
-            vscode.window.showInformationMessage('FTP 연결이 설정되었습니다. 이제 파일을 저장하면 자동으로 업로드됩니다.');
+            vscode.window.showInformationMessage(`${this.protocol.toUpperCase()} 연결이 설정되었습니다. 이제 파일을 저장하면 자동으로 업로드됩니다.`);
         }
 
         return connected;
@@ -153,16 +172,12 @@ export class FTPManager {
 
     async connect() {
         try {
-            if (this.isConnected && this.client) {
+            if (this.isConnected) {
                 return true;
             }
 
-            if (this.client) {
-                await this.client.close();
-                this.client = null;
-            }
-            
             const config = vscode.workspace.getConfiguration('ftpMini');
+            const protocol = config.get('protocol', 'ftp') as 'ftp' | 'sftp';
             const host = config.get('host') as string;
             const port = config.get('port', this.DEFAULT_PORT) as string;
             const username = config.get('username') as string;
@@ -170,31 +185,44 @@ export class FTPManager {
             const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
 
             if (!host || !username || !password) {
-                Logger.log('FTP 설정이 완료되지 않았습니다. 설정을 먼저 진행해주세요.');
+                Logger.log('FTP/SFTP 설정이 완료되지 않았습니다. 설정을 먼저 진행해주세요.');
                 Logger.show();
-                throw new Error('FTP 설정이 완료되지 않았습니다. 설정을 먼저 진행해주세요.');
+                throw new Error('FTP/SFTP 설정이 완료되지 않았습니다. 설정을 먼저 진행해주세요.');
             }
 
-            Logger.log(`FTP 서버에 연결 시도 중... (${host}:${port})`);
-            
-            this.client = new ftp.Client();
-            this.client.ftp.verbose = true;
+            this.protocol = protocol;
+            Logger.log(`${protocol.toUpperCase()} 서버에 연결 시도 중... (${host}:${port})`);
 
-            await this.client.access({
-                host,
-                port: parseInt(port),
-                user: username,
-                password,
-                secure: false
-            });
+            if (protocol === 'sftp') {
+                if (!this.sftpManager) {
+                    this.sftpManager = new SFTPManager();
+                }
+                await this.sftpManager.connect(host, port, username, password, remoteRoot);
+            } else {
+                if (this.client) {
+                    await this.client.close();
+                    this.client = null;
+                }
+                
+                this.client = new ftp.Client();
+                this.client.ftp.verbose = true;
 
-            if (this.client) {
-                await this.client.cd(remoteRoot);
+                await this.client.access({
+                    host,
+                    port: parseInt(port),
+                    user: username,
+                    password,
+                    secure: false
+                });
+
+                if (this.client) {
+                    await this.client.cd(remoteRoot);
+                }
             }
             
             this.isConnected = true;
             this.updateStatusBar('연결됨', '✅');
-            Logger.log(`FTP 서버에 성공적으로 연결되었습니다. (작업 디렉토리: ${remoteRoot})`);
+            Logger.log(`${protocol.toUpperCase()} 서버에 성공적으로 연결되었습니다. (작업 디렉토리: ${remoteRoot})`);
             return true;
         } catch (error) {
             this.isConnected = false;
@@ -202,12 +230,16 @@ export class FTPManager {
                 await this.client.close();
                 this.client = null;
             }
+            if (this.sftpManager) {
+                await this.sftpManager.disconnect();
+                this.sftpManager = null;
+            }
             
             this.updateStatusBar('연결 실패', '❌');
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
-            Logger.log(`FTP 연결 실패: ${errorMessage}`);
+            Logger.log(`${this.protocol.toUpperCase()} 연결 실패: ${errorMessage}`);
             Logger.show();
-            vscode.window.showErrorMessage(`FTP 연결 실패: ${errorMessage}`);
+            vscode.window.showErrorMessage(`${this.protocol.toUpperCase()} 연결 실패: ${errorMessage}`);
             return false;
         }
     }
@@ -264,7 +296,7 @@ export class FTPManager {
                     this.updateStatusBar('업로드 중', '🔄');
                     
                     if (!await this.ensureConnection()) {
-                        throw new Error('FTP 서버 연결에 실패했습니다.');
+                        throw new Error(`${this.protocol.toUpperCase()} 서버 연결에 실패했습니다.`);
                     }
 
                     const remotePath = this.getRemotePath(localPath);
@@ -274,17 +306,19 @@ export class FTPManager {
                     const config = vscode.workspace.getConfiguration('ftpMini');
                     const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
 
-                    // 먼저 루트 디렉토리로 이동
-                    await this.client?.cd(remoteRoot);
-                    
-                    // 원격 디렉토리 생성 시도
-                    if (remoteDir !== '.') {
-                        await this.client?.ensureDir(remoteDir);
-                        await this.client?.cd(remoteRoot);
+                    if (this.protocol === 'sftp' && this.sftpManager) {
+                        // SFTP 업로드
+                        await this.sftpManager.ensureDirectory(remoteDir);
+                        await this.sftpManager.uploadFile(localPath, remotePath);
+                    } else if (this.client) {
+                        // FTP 업로드
+                        await this.client.cd(remoteRoot);
+                        if (remoteDir !== '.') {
+                            await this.client.ensureDir(remoteDir);
+                            await this.client.cd(remoteRoot);
+                        }
+                        await this.client.uploadFrom(localPath, remotePath);
                     }
-
-                    // 파일 업로드
-                    await this.client?.uploadFrom(localPath, remotePath);
                     
                     this.updateStatusBar('연결됨', '✅');
                     Logger.log(`파일 업로드 성공: ${fileName}`);
@@ -294,7 +328,11 @@ export class FTPManager {
                     
                     if (errorMessage.includes('control socket') && retryCount < this.MAX_RETRY_ATTEMPTS) {
                         Logger.log(`연결 재시도 중... (${retryCount + 1}/${this.MAX_RETRY_ATTEMPTS})`);
-                        this.client = null;
+                        if (this.protocol === 'sftp') {
+                            this.sftpManager = null;
+                        } else {
+                            this.client = null;
+                        }
                         await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
                         this.uploadQueue[0].retryCount++;
                         continue;
@@ -348,105 +386,197 @@ export class FTPManager {
             Logger.log('원격 서버와 동기화를 시작합니다...');
             Logger.show();
 
-            if (!this.client) {
-                throw new Error('FTP 클라이언트가 초기화되지 않았습니다.');
+            if (this.protocol === 'sftp') {
+                if (!this.sftpManager) {
+                    throw new Error('SFTP 클라이언트가 초기화되지 않았습니다.');
+                }
+            } else {
+                if (!this.client) {
+                    throw new Error('FTP 클라이언트가 초기화되지 않았습니다.');
+                }
             }
 
             const config = vscode.workspace.getConfiguration('ftpMini');
             const remoteRoot = config.get('remoteRoot', this.DEFAULT_REMOTE_ROOT) as string;
 
-            // 원격 디렉토리로 이동 전에 현재 위치 확인
-            const currentDir = await this.client.pwd();
-            Logger.log(`현재 FTP 디렉토리: ${currentDir}`);
+            if (this.protocol === 'sftp') {
+                // SFTP 동기화 로직
+                await vscode.window.withProgress({
+                    location: vscode.ProgressLocation.Notification,
+                    title: "원격 서버와 동기화 중...",
+                    cancellable: true
+                }, async (progress, token) => {
+                    const config = vscode.workspace.getConfiguration('ftpMini');
+                    const excludePatterns: string[] = config.get('syncExclude') || ['.git', 'node_modules'];
+                    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+                    
+                    if (!workspaceFolder) {
+                        throw new Error('워크스페이스가 열려있지 않습니다.');
+                    }
 
-            // 원격 디렉토리로 이동
-            try {
-                await this.client.cd(remoteRoot);
-                Logger.log(`원격 디렉토리(${remoteRoot})로 이동했습니다.`);
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-                Logger.log(`원격 디렉토리(${remoteRoot}) 접근 실패: ${errorMessage}`);
-                vscode.window.showErrorMessage(`원격 디렉토리 접근 실패: ${errorMessage}`);
-                throw error;
+                    // 원격 파일 및 디렉토리 목록 가져오기
+                    Logger.log('원격 서버의 파일 목록을 가져오는 중...');
+                    const { files, directories } = await this.sftpManager!.listDirectory(remoteRoot);
+                    const totalItems = files.length + directories.length;
+                    Logger.log(`총 ${files.length}개의 파일과 ${directories.length}개의 디렉토리가 발견되었습니다.`);
+                    let processedItems = 0;
+
+                    // 먼저 모든 디렉토리 생성
+                    for (const dir of directories) {
+                        if (token.isCancellationRequested) {
+                            Logger.log('동기화가 취소되었습니다.');
+                            break;
+                        }
+
+                        if (excludePatterns.some(pattern => dir.includes(pattern))) {
+                            Logger.log(`제외된 디렉토리: ${dir}`);
+                            continue;
+                        }
+
+                        // 상대 경로로 변환
+                        const relativePath = dir.replace(remoteRoot, '').replace(/^\//, '');
+                        const localDirPath = vscode.Uri.joinPath(workspaceFolder.uri, relativePath);
+                        try {
+                            await vscode.workspace.fs.createDirectory(localDirPath);
+                            Logger.log(`디렉토리 생성 완료: ${relativePath}`);
+                            processedItems++;
+                            progress.report({
+                                message: `${processedItems}/${totalItems} 항목 동기화 중...`,
+                                increment: (100 / totalItems)
+                            });
+                        } catch (err) {
+                            Logger.log(`디렉토리 생성 실패: ${relativePath} - ${err}`);
+                        }
+                    }
+
+                    // 그 다음 파일 다운로드
+                    for (const file of files) {
+                        if (token.isCancellationRequested) {
+                            Logger.log('동기화가 취소되었습니다.');
+                            break;
+                        }
+
+                        if (excludePatterns.some(pattern => file.includes(pattern))) {
+                            Logger.log(`제외된 파일: ${file}`);
+                            continue;
+                        }
+
+                        try {
+                            // 상대 경로로 변환
+                            const relativePath = file.replace(remoteRoot, '').replace(/^\//, '');
+                            const localPath = vscode.Uri.joinPath(workspaceFolder.uri, relativePath).fsPath;
+                            Logger.log(`파일 다운로드 시작: ${relativePath}`);
+                            await this.sftpManager!.downloadFile(file, localPath);
+                            processedItems++;
+                            
+                            progress.report({
+                                message: `${processedItems}/${totalItems} 항목 동기화 중...`,
+                                increment: (100 / totalItems)
+                            });
+                            
+                            Logger.log(`파일 다운로드 완료: ${relativePath}`);
+                        } catch (err) {
+                            Logger.log(`파일 다운로드 실패: ${file} - ${err}`);
+                        }
+                    }
+
+                    Logger.log(`동기화 완료: 총 ${processedItems}개 항목이 동기화되었습니다.`);
+                });
+            } else {
+                // 기존 FTP 동기화 로직
+                // 원격 디렉토리로 이동 전에 현재 위치 확인
+                const currentDir = await this.client!.pwd();
+                Logger.log(`현재 FTP 디렉토리: ${currentDir}`);
+
+                // 원격 디렉토리로 이동
+                try {
+                    await this.client!.cd(remoteRoot);
+                    Logger.log(`원격 디렉토리(${remoteRoot})로 이동했습니다.`);
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+                    Logger.log(`원격 디렉토리(${remoteRoot}) 접근 실패: ${errorMessage}`);
+                    vscode.window.showErrorMessage(`원격 디렉토리 접근 실패: ${errorMessage}`);
+                    throw error;
+                }
+
+                await vscode.window.withProgress({
+                    location: vscode.ProgressLocation.Notification,
+                    title: "원격 서버와 동기화 중...",
+                    cancellable: true
+                }, async (progress, token) => {
+                    const config = vscode.workspace.getConfiguration('ftpMini');
+                    const excludePatterns: string[] = config.get('syncExclude') || ['.git', 'node_modules'];
+                    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+                    
+                    if (!workspaceFolder) {
+                        throw new Error('워크스페이스가 열려있지 않습니다.');
+                    }
+
+                    // 원격 파일 및 디렉토리 목록 가져오기
+                    Logger.log('원격 서버의 파일 목록을 가져오는 중...');
+                    const { files, directories } = await this.listRemoteFiles('');
+                    const totalItems = files.length + directories.length;
+                    Logger.log(`총 ${files.length}개의 파일과 ${directories.length}개의 디렉토리가 발견되었습니다.`);
+                    let processedItems = 0;
+
+                    // 먼저 모든 디렉토리 생성
+                    for (const dir of directories) {
+                        if (token.isCancellationRequested) {
+                            Logger.log('동기화가 취소되었습니다.');
+                            break;
+                        }
+
+                        if (excludePatterns.some(pattern => dir.includes(pattern))) {
+                            Logger.log(`제외된 디렉토리: ${dir}`);
+                            continue;
+                        }
+
+                        const localDirPath = vscode.Uri.joinPath(workspaceFolder.uri, dir);
+                        try {
+                            await vscode.workspace.fs.createDirectory(localDirPath);
+                            Logger.log(`디렉토리 생성 완료: ${dir}`);
+                            processedItems++;
+                            progress.report({
+                                message: `${processedItems}/${totalItems} 항목 동기화 중...`,
+                                increment: (100 / totalItems)
+                            });
+                        } catch (err) {
+                            Logger.log(`디렉토리 생성 실패: ${dir} - ${err}`);
+                        }
+                    }
+
+                    // 그 다음 파일 다운로드
+                    for (const file of files) {
+                        if (token.isCancellationRequested) {
+                            Logger.log('동기화가 취소되었습니다.');
+                            break;
+                        }
+
+                        if (excludePatterns.some(pattern => file.includes(pattern))) {
+                            Logger.log(`제외된 파일: ${file}`);
+                            continue;
+                        }
+
+                        try {
+                            const localPath = vscode.Uri.joinPath(workspaceFolder.uri, file).fsPath;
+                            Logger.log(`파일 다운로드 시작: ${file} -> ${localPath}`);
+                            await this.client!.downloadTo(localPath, file);
+                            processedItems++;
+                            
+                            progress.report({
+                                message: `${processedItems}/${totalItems} 항목 동기화 중...`,
+                                increment: (100 / totalItems)
+                            });
+                            
+                            Logger.log(`파일 다운로드 완료: ${file}`);
+                        } catch (err) {
+                            Logger.log(`파일 다운로드 실패: ${file} - ${err}`);
+                        }
+                    }
+
+                    Logger.log(`동기화 완료: 총 ${processedItems}개 항목이 동기화되었습니다.`);
+                });
             }
-
-            await vscode.window.withProgress({
-                location: vscode.ProgressLocation.Notification,
-                title: "원격 서버와 동기화 중...",
-                cancellable: true
-            }, async (progress, token) => {
-                const config = vscode.workspace.getConfiguration('ftpMini');
-                const excludePatterns: string[] = config.get('syncExclude') || ['.git', 'node_modules'];
-                const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-                
-                if (!workspaceFolder) {
-                    throw new Error('워크스페이스가 열려있지 않습니다.');
-                }
-
-                // 원격 파일 및 디렉토리 목록 가져오기
-                Logger.log('원격 서버의 파일 목록을 가져오는 중...');
-                const { files, directories } = await this.listRemoteFiles('');
-                const totalItems = files.length + directories.length;
-                Logger.log(`총 ${files.length}개의 파일과 ${directories.length}개의 디렉토리가 발견되었습니다.`);
-                let processedItems = 0;
-
-                // 먼저 모든 디렉토리 생성
-                for (const dir of directories) {
-                    if (token.isCancellationRequested) {
-                        Logger.log('동기화가 취소되었습니다.');
-                        break;
-                    }
-
-                    if (excludePatterns.some(pattern => dir.includes(pattern))) {
-                        Logger.log(`제외된 디렉토리: ${dir}`);
-                        continue;
-                    }
-
-                    const localDirPath = vscode.Uri.joinPath(workspaceFolder.uri, dir);
-                    try {
-                        await vscode.workspace.fs.createDirectory(localDirPath);
-                        Logger.log(`디렉토리 생성 완료: ${dir}`);
-                        processedItems++;
-                        progress.report({
-                            message: `${processedItems}/${totalItems} 항목 동기화 중...`,
-                            increment: (100 / totalItems)
-                        });
-                    } catch (err) {
-                        Logger.log(`디렉토리 생성 실패: ${dir} - ${err}`);
-                    }
-                }
-
-                // 그 다음 파일 다운로드
-                for (const file of files) {
-                    if (token.isCancellationRequested) {
-                        Logger.log('동기화가 취소되었습니다.');
-                        break;
-                    }
-
-                    if (excludePatterns.some(pattern => file.includes(pattern))) {
-                        Logger.log(`제외된 파일: ${file}`);
-                        continue;
-                    }
-
-                    try {
-                        const localPath = vscode.Uri.joinPath(workspaceFolder.uri, file).fsPath;
-                        Logger.log(`파일 다운로드 시작: ${file} -> ${localPath}`);
-                        await this.client?.downloadTo(localPath, file);
-                        processedItems++;
-                        
-                        progress.report({
-                            message: `${processedItems}/${totalItems} 항목 동기화 중...`,
-                            increment: (100 / totalItems)
-                        });
-                        
-                        Logger.log(`파일 다운로드 완료: ${file}`);
-                    } catch (err) {
-                        Logger.log(`파일 다운로드 실패: ${file} - ${err}`);
-                    }
-                }
-
-                Logger.log(`동기화 완료: 총 ${processedItems}개 항목이 동기화되었습니다.`);
-            });
             Logger.log('동기화가 완료되었습니다.');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다';
@@ -552,14 +682,19 @@ export class FTPManager {
             this.isConnected = false;
             this.isUploading = false;
             
-            // FTP 클라이언트 종료
+            // 클라이언트 종료
             if (this.client) {
                 await this.client.close();
                 this.client = null;
             }
+            if (this.sftpManager) {
+                await this.sftpManager.disconnect();
+                this.sftpManager = null;
+            }
 
             // 모든 설정 초기화
             const config = vscode.workspace.getConfiguration('ftpMini');
+            await config.update('protocol', undefined, true);
             await config.update('host', undefined, true);
             await config.update('port', undefined, true);
             await config.update('username', undefined, true);
@@ -569,7 +704,7 @@ export class FTPManager {
             await config.update('syncExclude', undefined, true);
 
             this.updateStatusBar('비활성화됨', '');
-            Logger.log('FTP 연결이 완전히 비활성화되고 모든 설정이 초기화되었습니다.');
+            Logger.log('FTP/SFTP 연결이 완전히 비활성화되고 모든 설정이 초기화되었습니다.');
             
             // 상태바 초기화
             this.statusBar.text = "FTP Mini";
