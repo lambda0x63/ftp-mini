@@ -36,18 +36,8 @@ async function main() {
 		platform: 'node',
 		outfile: 'dist/extension.js',
 		external: [
-			'vscode',
-			'ssh2',
-			'cpu-features',
-			'nan',
-			'buildcheck',
-			'basic-ftp',
-			'ssh2-streams',
-			'asn1',
-			'bcrypt-pbkdf',
-			'tweetnacl'
+			'vscode'
 		],
-		packages: 'external',
 		logLevel: 'silent',
 		plugins: [
 			esbuildProblemMatcherPlugin,

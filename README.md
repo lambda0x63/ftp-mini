@@ -19,6 +19,7 @@
 - Remote server and local file synchronization options
 - Reliable connection management (independent connections per task)
 - Option to open browser after uploading web files (.html, .css, .js)
+- Improved extension activation and command registration for better reliability
 
 <h2 align="left">Installation</h2>
 

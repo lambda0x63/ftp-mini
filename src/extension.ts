@@ -14,7 +14,65 @@ declare global {
 const g = globalThis as unknown as NodeJS.Global;
 
 export function activate(context: vscode.ExtensionContext) {
+    console.log('FTP Mini 익스텐션 활성화 시작');
     Logger.initialize();
+    
+    const ftpManager = new FTPManager();
+    g.ftpManager = ftpManager;
+    
+    // 명령어 등록을 가장 먼저 수행
+    const configureCommand = vscode.commands.registerCommand('ftp-mini.configure', async () => {
+        console.log('ftp-mini.configure 명령어 실행됨');
+        try {
+            const config = vscode.workspace.getConfiguration('ftpMini');
+            const existingHost = config.get('host');
+            
+            if (existingHost) {
+                const answer = await vscode.window.showInformationMessage(
+                    '기존 FTP 설정이 있습니다. 새로 설정하시겠습니까?',
+                    '예', '아니오'
+                );
+                
+                if (answer !== '예') {
+                    Logger.log('FTP 재설정이 취소되었습니다.');
+                    return;
+                }
+                Logger.log('FTP 재설정을 시작합니다.');
+            }
+            
+            await ftpManager.showSetupWizard();
+        } catch (error) {
+            console.error('ftp-mini.configure 실행 중 오류:', error);
+            vscode.window.showErrorMessage(`설정 중 오류가 발생했습니다: ${error}`);
+        }
+    });
+
+    const deactivateCommand = vscode.commands.registerCommand('ftp-mini.deactivate', async () => {
+        console.log('ftp-mini.deactivate 명령어 실행됨');
+        try {
+            const answer = await vscode.window.showWarningMessage(
+                'FTP 연결을 비활성화하시겠습니까? 모든 설정이 초기화됩니다.',
+                '예', '아니오'
+            );
+            
+            if (answer === '예') {
+                const config = vscode.workspace.getConfiguration('ftpMini');
+                await config.update('host', undefined, true);
+                await config.update('username', undefined, true);
+                await config.update('password', undefined, true);
+                await config.update('remoteRoot', undefined, true);
+                
+                await ftpManager.deactivate();
+                vscode.window.showInformationMessage('FTP 연결이 비활성화되었습니다.');
+            }
+        } catch (error) {
+            console.error('ftp-mini.deactivate 실행 중 오류:', error);
+            vscode.window.showErrorMessage(`비활성화 중 오류가 발생했습니다: ${error}`);
+        }
+    });
+
+    // 명령어가 등록되었는지 확인
+    console.log('FTP Mini 명령어들이 등록되었습니다');
     
     // 시작할 때 모든 설정 초기화
     const config = vscode.workspace.getConfiguration('ftpMini');
@@ -30,54 +88,11 @@ export function activate(context: vscode.ExtensionContext) {
         Logger.log('FTP Mini가 새로 시작되었습니다. 모든 이전 설정이 초기화되었습니다.');
     });
 
-    const ftpManager = new FTPManager();
-    g.ftpManager = ftpManager;
-    
     // 상태바 초기화
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     statusBarItem.text = "FTP Mini";
     statusBarItem.command = 'ftp-mini.configure';
     statusBarItem.show();
-
-    // 설정 명령어 (재설정 포함)
-    let configureCommand = vscode.commands.registerCommand('ftp-mini.configure', async () => {
-        const config = vscode.workspace.getConfiguration('ftpMini');
-        const existingHost = config.get('host');
-        
-        if (existingHost) {
-            const answer = await vscode.window.showInformationMessage(
-                '기존 FTP 설정이 있습니다. 새로 설정하시겠습니까?',
-                '예', '아니오'
-            );
-            
-            if (answer !== '예') {
-                Logger.log('FTP 재설정이 취소되었습니다.');
-                return;
-            }
-            Logger.log('FTP 재설정을 시작합니다.');
-        }
-        
-        await ftpManager.showSetupWizard();
-    });
-
-    // FTP 비활성화 명령어 추가
-    let deactivateCommand = vscode.commands.registerCommand('ftp-mini.deactivate', async () => {
-        const answer = await vscode.window.showWarningMessage(
-            'FTP 연결을 비활성화하시겠습니까? 모든 설정이 초기화됩니다.',
-            '예', '아니오'
-        );
-        
-        if (answer === '예') {
-            const config = vscode.workspace.getConfiguration('ftpMini');
-            await config.update('host', undefined, true);
-            await config.update('username', undefined, true);
-            await config.update('password', undefined, true);
-            await config.update('remoteRoot', undefined, true);
-            
-            await ftpManager.deactivate();
-            vscode.window.showInformationMessage('FTP 연결이 비활성화되었습니다.');
-        }
-    });
 
     // 파일 저장 시 자동 업로드
     let saveWatcher = vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
