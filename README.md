@@ -3,12 +3,13 @@
     FTP Mini
 </h1>
 <p align="center">
-	Simple FTP Extension for VSCode.
+	Simple FTP/SFTP Extension for VSCode.
 </p>
 
 <h2 align="left">Features</h2>
 
-- Automatic FTP server connection and file deployment
+- Automatic FTP/SFTP server connection and file deployment
+- Support for both FTP and SFTP protocols with custom port configuration
 - Automatic upload when saving files
 - Server synchronization when deleting files
 - Support for moving and renaming files/folders
@@ -28,20 +29,22 @@
 
 <h2 align="left">Usage</h2>
 
-<h3 align="left">FTP Connection Setup</h3>
+<h3 align="left">FTP/SFTP Connection Setup</h3>
 
 1. Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
 2. Select "FTP Mini: Configure Connection"
-3. Enter required information:
-  - FTP host address (example: example.dothome.co.kr)
-  - FTP username
-  - FTP password
+3. Choose protocol (FTP or SFTP)
+4. Enter required information:
+  - FTP/SFTP host address (example: example.dothome.co.kr)
+  - Port number (FTP default: 21, SFTP default: 22)
+  - Username
+  - Password
   - Remote working directory (default: /html)
-4. Choose whether to synchronize with remote server after setup
+5. Choose whether to synchronize with remote server after setup
 
 <h3 align="left">Auto Upload</h3>
 
-- Files are automatically uploaded to the FTP server when saved
+- Files are automatically uploaded to the FTP/SFTP server when saved
 - Upload progress status can be checked in the status bar
 - Automatic retry up to 3 times on upload failure
 - Web files can be immediately checked in browser after upload
@@ -83,21 +86,21 @@ Click the FTP Mini icon in the status bar to access the following menu:
 <h3 align="left">Development Environment Setup</h3>
 
 1. Fork and clone the repository
-```bash
-git clone https://github.com/root39293/ftp-mini.git
+~~~bash
+git clone https://github.com/lambda0x63/ftp-mini.git
 cd ftp-mini
-```
+~~~
 2. Install dependencies
-```bash
+~~~bash
 npm install
-```
+~~~
 
 <h3 align="left">Local Development</h3>
 
 1. Run development server
-```bash
+~~~bash
 npm run watch
-```
+~~~
 2. Debugging in VS Code
 - Press F5 to launch extension in a new window
 - Code changes are automatically recompiled
@@ -105,9 +108,9 @@ npm run watch
 <h3 align="left">How to Contribute</h3>
 
 1. Create a new branch
-```bash
+~~~bash
 git checkout -b feature/feature-name
-```
+~~~
 2. Pull Request
 - Create PR with description
 

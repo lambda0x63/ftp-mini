@@ -101,7 +101,7 @@
   "publisher": "faith6",
   "repository": {
     "type": "git",
-    "url": "https://github.com/root39293/ftp-mini.git"
+    "url": "https://github.com/lambda0x63/ftp-mini.git"
   },
   "icon": "images/icon.png",
   "galleryBanner": {
@@ -115,8 +115,8 @@
     "sync"
   ],
   "bugs": {
-    "url": "https://github.com/root39293/ftp-mini/issues"
+    "url": "https://github.com/lambda0x63/ftp-mini/issues"
   },
-  "homepage": "https://github.com/root39293/ftp-mini#readme",
+  "homepage": "https://github.com/lambda0x63/ftp-mini#readme",
   "license": "MIT"
 }
