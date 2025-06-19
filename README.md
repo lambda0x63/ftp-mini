@@ -6,6 +6,19 @@
 	Simple FTP/SFTP Extension for VSCode.
 </p>
 
+<p align="center">
+	<a href="https://marketplace.visualstudio.com/items?itemName=faith6.ftp-mini">
+		<img src="https://img.shields.io/vscode-marketplace/d/faith6.ftp-mini?label=installs" alt="VSCode Marketplace"/>
+	</a>
+	<a href="https://marketplace.visualstudio.com/items?itemName=faith6.ftp-mini">
+		<img src="https://img.shields.io/vscode-marketplace/v/faith6.ftp-mini" alt="Version"/>
+	</a>
+</p>
+
+<p align="center">
+	<strong><a href="https://marketplace.visualstudio.com/items?itemName=faith6.ftp-mini">📦 Install from VSCode Marketplace</a></strong>
+</p>
+
 <h2 align="left">Features</h2>
 
 - Automatic FTP/SFTP server connection and file deployment
