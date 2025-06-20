@@ -36,7 +36,9 @@ async function main() {
 		platform: 'node',
 		outfile: 'dist/extension.js',
 		external: [
-			'vscode'
+			'vscode',
+			'ssh2',
+			'cpu-features'
 		],
 		logLevel: 'silent',
 		plugins: [
