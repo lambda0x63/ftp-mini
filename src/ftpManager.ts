@@ -246,18 +246,35 @@ export class FTPManager {
 
     private async ensureConnection(): Promise<boolean> {
         try {
-            if (!this.client) {
-                return await this.connect();
-            }
+            if (this.protocol === 'sftp') {
+                if (!this.sftpManager || !this.sftpManager.isConnected) {
+                    return await this.connect();
+                }
+                // SFTP 연결 상태 확인
+                try {
+                    // 간단한 명령으로 연결 확인
+                    await this.sftpManager.listDirectory('.');
+                    return true;
+                } catch {
+                    // 연결이 끊어진 경우 재연결 시도
+                    Logger.log('SFTP 연결이 끊어짐, 재연결 시도');
+                    this.sftpManager = null;
+                    return await this.connect();
+                }
+            } else {
+                if (!this.client) {
+                    return await this.connect();
+                }
 
-            // 연결 상태 확인
-            try {
-                await this.client.pwd();
-                return true;
-            } catch {
-                // 연결이 끊어진 경우 재연결 시도
-                this.client = null;
-                return await this.connect();
+                // FTP 연결 상태 확인
+                try {
+                    await this.client.pwd();
+                    return true;
+                } catch {
+                    // 연결이 끊어진 경우 재연결 시도
+                    this.client = null;
+                    return await this.connect();
+                }
             }
         } catch (error) {
             return false;
@@ -308,8 +325,17 @@ export class FTPManager {
 
                     if (this.protocol === 'sftp' && this.sftpManager) {
                         // SFTP 업로드
-                        await this.sftpManager.ensureDirectory(remoteDir);
-                        await this.sftpManager.uploadFile(localPath, remotePath);
+                        const fullRemotePath = path.posix.join(remoteRoot, remotePath);
+                        const fullRemoteDir = path.posix.join(remoteRoot, remoteDir);
+                        Logger.log(`SFTP 업로드 시작: ${localPath} -> ${fullRemotePath}`);
+                        try {
+                            await this.sftpManager.ensureDirectory(fullRemoteDir);
+                            await this.sftpManager.uploadFile(localPath, fullRemotePath);
+                            Logger.log(`SFTP 업로드 완료: ${fileName}`);
+                        } catch (error) {
+                            Logger.log(`SFTP 업로드 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+                            throw error;
+                        }
                     } else if (this.client) {
                         // FTP 업로드
                         await this.client.cd(remoteRoot);

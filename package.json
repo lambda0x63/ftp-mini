@@ -2,7 +2,7 @@
   "name": "ftp-mini",
   "displayName": "FTP Mini",
   "description": "Simple FTP deployment for web development",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -10,8 +10,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:ftp-mini.configure",
-    "onCommand:ftp-mini.deactivate"
+    "onStartupFinished"
   ],
   "main": "./dist/extension.js",
   "contributes": {

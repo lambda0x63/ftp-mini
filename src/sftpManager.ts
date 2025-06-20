@@ -81,12 +81,22 @@ export class SFTPManager {
             throw new Error('SFTP 연결이 되어있지 않습니다.');
         }
 
+        Logger.log(`SFTP 업로드 시도: ${localPath} -> ${remotePath}`);
+        
         return new Promise((resolve, reject) => {
             this.sftp?.fastPut(localPath, remotePath, (err: Error | null | undefined) => {
                 if (err) {
+                    const errorMessage = err ? (err as any).message || (err as any).code || err.toString() : '알 수 없는 오류';
+                    Logger.log(`SFTP 업로드 실패: ${errorMessage}`);
+                    Logger.log(`  로컬 경로: ${localPath}`);
+                    Logger.log(`  원격 경로: ${remotePath}`);
+                    if ((err as any).code) {
+                        Logger.log(`  오류 코드: ${(err as any).code}`);
+                    }
                     reject(err);
                     return;
                 }
+                Logger.log(`SFTP 업로드 성공: ${remotePath}`);
                 resolve();
             });
         });
@@ -213,9 +223,11 @@ export class SFTPManager {
             currentPath += '/' + part;
             try {
                 await this.createDirectory(currentPath);
-            } catch (error) {
-                // 디렉토리가 이미 존재하는 경우 무시
-                if (!(error instanceof Error && error.message.includes('already exists'))) {
+                Logger.log(`디렉토리 생성 성공: ${currentPath}`);
+            } catch (error: any) {
+                // 디렉토리가 이미 존재하는 경우는 무시 (SFTP 오류 코드 4 = File already exists)
+                if (error.code !== 4 && !error.message?.includes('already exists')) {
+                    Logger.log(`디렉토리 생성 실패: ${currentPath} - ${error.message || error}`);
                     throw error;
                 }
             }
