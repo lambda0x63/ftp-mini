@@ -2,7 +2,7 @@
   "name": "ftp-mini",
   "displayName": "FTP Mini",
   "description": "Simple FTP deployment for web development",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "engines": {
     "vscode": "^1.80.0"
   },
