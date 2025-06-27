@@ -1,115 +1,137 @@
-# FTP Mini
+<p align="center">
+  <img src="images/icon.png" alt="FTP Mini Icon" width="128" height="128">
+</p>
 
-VSCode를 위한 간단한 FTP Extension.
+<h1 align="center">FTP Mini</h1>
 
-## Features
+<p align="center">
+  <strong>Simple, reliable FTP deployment for VS Code</strong>
+</p>
 
-- FTP 서버 자동 연결 및 파일 배포
-- 파일 저장 시 자동 업로드
-- 파일 삭제 시 서버 동기화
-- 파일/폴더 이동 및 이름 변경 지원
-- 새 폴더 생성 시 자동 동기화
-- 업로드 실패 시 자동 재시도 (최대 3회)
-- 상태바를 통한 작업 상태 확인
-- 원격 서버와 로컬 파일 동기화 옵션
-- 안정적인 연결 관리 (작업별 독립 연결)
-- 웹 파일(.html, .css, .js) 업로드 후 브라우저 열기 옵션
+<p align="center">
+  <a href="https://open-vsx.org/extension/lambda0x63/ftp-mini">
+    <img src="https://img.shields.io/open-vsx/v/lambda0x63/ftp-mini?color=blue&label=Open%20VSX&logo=eclipse-ide" alt="Open VSX Version">
+  </a>
+  <a href="https://github.com/lambda0x63/ftp-mini/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+  </a>
+  <a href="https://github.com/lambda0x63/ftp-mini/issues">
+    <img src="https://img.shields.io/github/issues/lambda0x63/ftp-mini" alt="Issues">
+  </a>
+</p>
 
-## Installation
+---
 
-1. VSCode 실행
-2. Extensions 탭 열기 (Ctrl+Shift+X or Cmd+Shift+X)
-3. "ftp-mini" 검색
-4. Install 클릭
+## ✨ Features
 
-## Usage
+- 🚀 **Auto Upload** - Automatically upload files on save
+- 🔄 **Smart Sync** - Sync local and remote files with one click
+- 📁 **Full File Operations** - Create, delete, move, and rename files/folders
+- 🔁 **Auto Retry** - Automatic retry on connection failures (up to 3 attempts)
+- 📊 **Status Bar Integration** - Real-time upload status in VS Code status bar
+- 🌐 **Browser Preview** - Open uploaded web files directly in browser
+- 🎯 **Queue System** - Stable handling of multiple concurrent operations
+- 🚫 **Exclude Patterns** - Customize sync exclusions (default: `.git`, `node_modules`)
 
-### FTP Connection Setup
+## 📦 Installation
 
-1. Command Palette 열기 (Ctrl+Shift+P or Cmd+Shift+P)
-2. "FTP Mini: 연결 설정" 선택
-3. 필요 정보 입력:
-   - FTP 호스트 주소 (예: example.dothome.co.kr)
-   - FTP 아이디
-   - FTP 비밀번호
-   - 원격 작업 디렉토리 (기본값: /html)
-4. 설정 완료 후 원격 서버와 동기화 여부 선택
+### From Open VSX Registry
 
-### Auto Upload
+1. Open VS Code
+2. Go to Extensions (Ctrl+Shift+X / Cmd+Shift+X)
+3. Search for "FTP Mini"
+4. Click Install
 
-- 파일 저장 시 자동으로 FTP 서버에 업로드
-- 상태바에서 업로드 진행 상태 확인 가능
-- 업로드 실패 시 자동으로 최대 3회 재시도
-- 웹 파일 업로드 후 브라우저에서 바로 확인 가능
+### Manual Installation
 
-### File Operations
+```bash
+# Download the latest release
+wget https://github.com/lambda0x63/ftp-mini/releases/latest/download/ftp-mini.vsix
 
-- 파일/폴더 이동 및 이름 변경 시 자동 동기화
-- 새 폴더 생성 시 자동으로 원격 서버에 생성
-- 파일 삭제 시 원격 서버에서도 자동 삭제
+# Install in VS Code
+code --install-extension ftp-mini.vsix
+```
 
-### Quick Menu
+## 🚀 Quick Start
 
-상태바의 FTP Mini 아이콘 클릭 시 다음 메뉴 사용 가능:
-- 연결/재연결
-- 설정
-- 로그 보기
-- 연결 해제
+### 1. Connect to FTP Server
 
-### Configuration
+1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Run `FTP Mini: 연결 설정`
+3. Enter your FTP credentials:
+   - **Host**: Your FTP server address (e.g., `ftp.example.com`)
+   - **Username**: Your FTP username
+   - **Password**: Your FTP password
+   - **Remote Directory**: Remote working directory (default: `/html`)
 
-- 기존 설정이 있는 경우, 연결 설정 실행 시 재설정 여부 확인
-- 설정 과정 중 언제든 ESC 키로 취소 가능
-- 취소 시 기존 설정 유지
-- 동기화 제외 패턴 설정 가능 (기본값: .git, node_modules)
+### 2. Start Working
 
-### Deactivation
+Once connected, FTP Mini will:
+- ✅ Upload files automatically when you save
+- ✅ Sync file operations (create, delete, move, rename)
+- ✅ Show upload status in the status bar
+- ✅ Handle connection issues gracefully
 
-- Command Palette에서 "FTP Mini: 연결 비활성화" 선택
-- 확인 후 모든 FTP 설정이 초기화되고 연결이 종료됨
-- 다시 사용하려면 새로 연결 설정을 해야 함
+## 🎮 Commands
 
-## Support
+| Command | Description |
+|---------|-------------|
+| `FTP Mini: 연결 설정` | Configure and connect to FTP server |
+| `FTP Mini: 연결 비활성화` | Disconnect and clear all settings |
 
-- 버그 리포트: GitHub Issues를 통해 제보
-- 기능 제안: GitHub Issues를 통해 제안
+## ⚙️ Configuration
 
-## Contributing
+FTP Mini stores your settings securely in VS Code. You can also configure:
 
-### Development Environment Setup
+```json
+{
+  "ftpMini.syncExclude": [".git", "node_modules", "*.log"],
+  "ftpMini.syncOnConnect": true,
+  "ftpMini.remoteRoot": "/public_html"
+}
+```
 
-1. 저장소 포크 및 복제
-~~~bash
-git clone https://github.com/root39293/ftp-mini.git
-cd ftp-mini
-~~~
+### Configuration Options
 
-2. 의존성 설치
-~~~bash
-npm install
-~~~
+- **`ftpMini.host`**: FTP server address
+- **`ftpMini.username`**: FTP username
+- **`ftpMini.password`**: FTP password (stored securely)
+- **`ftpMini.remoteRoot`**: Remote working directory
+- **`ftpMini.syncOnConnect`**: Auto-sync on connection (default: `true`)
+- **`ftpMini.syncExclude`**: Patterns to exclude from sync
 
-### Local Development
+## 🛡️ Security
 
-1. 개발 서버 실행
-~~~bash
-npm run watch
-~~~
+- Credentials are stored in VS Code's secure storage
+- All FTP connections use the latest security protocols
+- Passwords are never logged or exposed
 
-2. VS Code에서 디버깅
-- F5를 눌러 새 창에서 익스텐션 실행
-- 코드 수정 시 자동으로 다시 컴파일
+## 🤝 Contributing
 
-### How to Contribute
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-1. 새로운 브랜치 생성
-~~~bash
-git checkout -b feature/feature-name
-~~~
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-2. 풀 리퀘스트
-- 설명과 함께 PR 생성
+## 📝 License
 
-## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+## 🐛 Bug Reports
+
+Found a bug? Please report it on our [GitHub Issues](https://github.com/lambda0x63/ftp-mini/issues) page.
+
+## 👨‍💻 Author
+
+**lambda0x63**
+
+- GitHub: [@lambda0x63](https://github.com/lambda0x63)
+
+---
+
+<p align="center">
+  Made with ❤️ for the VS Code community
+</p>
