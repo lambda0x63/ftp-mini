@@ -13,7 +13,6 @@ export class FTPManager {
     private readonly defaultRemoteRoot = '/html';
     private readonly maxRetryAttempts = 3;
     private readonly retryDelay = 1000;
-    private isUploading: boolean = false;
     private uploadQueue: Array<{localPath: string, retryCount: number}> = [];
     private isProcessingQueue = false;
     private queueLock = Promise.resolve();
@@ -136,7 +135,7 @@ export class FTPManager {
             }
 
             if (this.client) {
-                await this.client.close();
+                this.client.close();
                 this.client = null;
             }
             
@@ -175,7 +174,7 @@ export class FTPManager {
         } catch (error) {
             this.isConnected = false;
             if (this.client) {
-                await this.client.close();
+                this.client.close();
                 this.client = null;
             }
             
@@ -545,7 +544,7 @@ export class FTPManager {
             Logger.log(`삭제 실패: ${localPath} - ${errorMessage}`);
         } finally {
             if (this.client && !this.isConnected) {
-                await this.client.close();
+                this.client.close();
                 this.client = null;
             }
         }
@@ -555,11 +554,10 @@ export class FTPManager {
         try {
             this.isEnabled = false;
             this.isConnected = false;
-            this.isUploading = false;
             
             // FTP 클라이언트 종료
             if (this.client) {
-                await this.client.close();
+                this.client.close();
                 this.client = null;
             }
 
@@ -595,10 +593,6 @@ export class FTPManager {
         return ipRegex.test(host) || domainRegex.test(host);
     }
 
-    private validatePort(port: string): boolean {
-        const portNum = parseInt(port);
-        return !isNaN(portNum) && portNum > 0 && portNum <= 65535;
-    }
 
     private validatePath(path: string): boolean {
         return path.startsWith('/') && !/[<>:"|?*]/.test(path);

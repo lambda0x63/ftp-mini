@@ -1,5 +1,29 @@
 # Change Log
 
+## [0.3.6] - 2025-06-27
+
+### 버그 수정
+- 동시 작업 실행 시 발생하는 "User launched a task while another one is still running" 오류 해결
+- 파일 저장 이벤트 핸들러에 await 추가로 순차적 처리 보장
+- FTP 작업 중복 실행 방지 로직 추가 (activeOperations Set 활용)
+- 불필요한 await 제거로 성능 개선
+
+### 개선
+- 큐 시스템 동시성 제어 강화 (queueLock Promise 체인)
+- 에러 메시지 사용자 친화적으로 개선
+- 연결 오류 패턴 인식 및 재시도 로직 개선
+- 코드 품질 향상 (ESLint 경고 해결, 사용하지 않는 변수 제거)
+
+### 기타
+- TypeScript 타입 체크 통과
+- Open VSX 배포 준비 완료
+
+## [0.3.5] - 2025-06-27
+
+### 변경사항
+- 리포지토리 URL 업데이트 (lambda0x63)
+- 버전 정보 업데이트
+
 ## [0.3.4] - 2025-02-05
 
 ### 버그 수정
