@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { FTPManager } from './ftpManager'
+import { FTPManager } from './ftpManager';
 import { Logger } from './logger';
 
 // NodeJS의 global 타입 확장
@@ -13,21 +13,20 @@ declare global {
 
 const g = globalThis as unknown as NodeJS.Global;
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     Logger.initialize();
     
     // 시작할 때 모든 설정 초기화
     const config = vscode.workspace.getConfiguration('ftpMini');
-    Promise.all([
+    await Promise.all([
         config.update('host', undefined, true),
         config.update('username', undefined, true),
         config.update('password', undefined, true),
         config.update('remoteRoot', undefined, true),
         config.update('syncOnConnect', undefined, true),
         config.update('syncExclude', undefined, true)
-    ]).then(() => {
-        Logger.log('FTP Mini가 새로 시작되었습니다. 모든 이전 설정이 초기화되었습니다.');
-    });
+    ]);
+    Logger.log('FTP Mini가 새로 시작되었습니다. 모든 이전 설정이 초기화되었습니다.');
 
     const ftpManager = new FTPManager();
     g.ftpManager = ftpManager;
@@ -79,10 +78,10 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     // 파일 저장 시 자동 업로드
-    let saveWatcher = vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+    let saveWatcher = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
         if (ftpManager.isActive()) {
             Logger.log(`파일 업로드 시작: ${document.uri.fsPath}`);
-            ftpManager.uploadFile(document.uri.fsPath);
+            await ftpManager.uploadFile(document.uri.fsPath);
         }
     });
 
