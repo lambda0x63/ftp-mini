@@ -22,18 +22,18 @@
 
 ---
 
-## ✨ Features
+## Features
 
-- 🚀 **Auto Upload** - Automatically upload files on save
-- 🔄 **Smart Sync** - Sync local and remote files with one click
-- 📁 **Full File Operations** - Create, delete, move, and rename files/folders
-- 🔁 **Auto Retry** - Automatic retry on connection failures (up to 3 attempts)
-- 📊 **Status Bar Integration** - Real-time upload status in VS Code status bar
-- 🌐 **Browser Preview** - Open uploaded web files directly in browser
-- 🎯 **Queue System** - Stable handling of multiple concurrent operations
-- 🚫 **Exclude Patterns** - Customize sync exclusions (default: `.git`, `node_modules`)
+- Auto Upload - Automatically upload files on save
+- Smart Sync - Sync local and remote files with one click
+- Full File Operations - Create, delete, move, and rename files/folders
+- Auto Retry - Automatic retry on connection failures (up to 3 attempts)
+- Status Bar Integration - Real-time upload status in VS Code status bar
+- Browser Preview - Open uploaded web files directly in browser
+- Queue System - Stable handling of multiple concurrent operations
+- Exclude Patterns - Customize sync exclusions (default: `.git`, `node_modules`)
 
-## 📦 Installation
+## Installation
 
 ### From Open VSX Registry
 
@@ -52,7 +52,7 @@ wget https://github.com/lambda0x63/ftp-mini/releases/latest/download/ftp-mini.vs
 code --install-extension ftp-mini.vsix
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Connect to FTP Server
 
@@ -66,20 +66,16 @@ code --install-extension ftp-mini.vsix
 
 ### 2. Start Working
 
-Once connected, FTP Mini will:
-- ✅ Upload files automatically when you save
-- ✅ Sync file operations (create, delete, move, rename)
-- ✅ Show upload status in the status bar
-- ✅ Handle connection issues gracefully
+Once connected, FTP Mini will upload files automatically when you save, sync file operations (create, delete, move, rename), show upload status in the status bar, and handle connection issues gracefully.
 
-## 🎮 Commands
+## Commands
 
 | Command | Description |
 |---------|-------------|
 | `FTP Mini: 연결 설정` | Configure and connect to FTP server |
 | `FTP Mini: 연결 비활성화` | Disconnect and clear all settings |
 
-## ⚙️ Configuration
+## Configuration
 
 FTP Mini stores your settings securely in VS Code. You can also configure:
 
@@ -100,38 +96,10 @@ FTP Mini stores your settings securely in VS Code. You can also configure:
 - **`ftpMini.syncOnConnect`**: Auto-sync on connection (default: `true`)
 - **`ftpMini.syncExclude`**: Patterns to exclude from sync
 
-## 🛡️ Security
+## Security
 
-- Credentials are stored in VS Code's secure storage
-- All FTP connections use the latest security protocols
-- Passwords are never logged or exposed
+Credentials are stored in VS Code's secure storage. All FTP connections use the latest security protocols. Passwords are never logged or exposed.
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🐛 Bug Reports
-
-Found a bug? Please report it on our [GitHub Issues](https://github.com/lambda0x63/ftp-mini/issues) page.
-
-## 👨‍💻 Author
-
-**lambda0x63**
-
-- GitHub: [@lambda0x63](https://github.com/lambda0x63)
-
----
-
-<p align="center">
-  Made with ❤️ for the VS Code community
-</p>
