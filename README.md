@@ -6,7 +6,7 @@
 
 ### Open VSX Registry
 [![Open VSX Version](https://img.shields.io/open-vsx/v/lambda0x63/ftp-mini?logo=open-vsx&label=Version)](https://open-vsx.org/extension/lambda0x63/ftp-mini)
-[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/lambda0x63/ftp-mini?logo=open-vsx&label=Downloads)](https://open-vsx.org/extension/lambda0x63/ftp-mini)
+[![Open VSX Installs](https://img.shields.io/open-vsx/dt/lambda0x63/ftp-mini?logo=open-vsx&label=Installs)](https://open-vsx.org/extension/lambda0x63/ftp-mini)
 
 ## 시스템 개요
 
