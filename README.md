@@ -2,7 +2,7 @@
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/lambda0x63.ftp-mini?logo=visual-studio-code&label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=lambda0x63.ftp-mini)
 [![Open VSX](https://img.shields.io/open-vsx/v/lambda0x63/ftp-mini?logo=open-vsx&label=Open%20VSX)](https://open-vsx.org/extension/lambda0x63/ftp-mini)
-[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/lambda0x63/ftp-mini?logo=open-vsx&label=Downloads)](https://open-vsx.org/extension/lambda0x63/ftp-mini)
+[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/lambda0x63/ftp-mini?logo=open-vsx&label=Open%20VSX%20Downloads)](https://open-vsx.org/extension/lambda0x63/ftp-mini)
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/lambda0x63.ftp-mini?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=lambda0x63.ftp-mini)
 
 ## 시스템 개요
