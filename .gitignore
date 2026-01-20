@@ -1,0 +1,37 @@
+# 컴파일된 출력물
+out
+dist
+node_modules
+.vscode-test/
+*.vsix
+
+# 로그 파일
+*.log
+
+# IDE 설정
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# 환경 설정 파일
+.env
+.env.local
+.env.*.local
+
+# OS 관련 파일
+.DS_Store
+Thumbs.db
+
+# npm 관련
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+yarn.lock
+
+# 테스트 커버리지
+coverage/
+
+#misc
+.claude/

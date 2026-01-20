@@ -1,0 +1,106 @@
+{
+  "name": "ftp-mini",
+  "displayName": "FTP Mini",
+  "description": "Simple FTP deployment for web development",
+  "version": "0.3.7",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ftp-mini.configure",
+        "title": "FTP Mini: 연결 설정"
+      },
+      {
+        "command": "ftp-mini.deactivate",
+        "title": "FTP Mini: 연결 비활성화"
+      }
+    ],
+    "configuration": {
+      "title": "FTP Mini",
+      "properties": {
+        "ftpMini.host": {
+          "type": "string",
+          "default": "",
+          "description": "FTP 호스트 주소"
+        },
+        "ftpMini.username": {
+          "type": "string",
+          "default": "",
+          "description": "FTP 사용자 아이디"
+        },
+        "ftpMini.password": {
+          "type": "string",
+          "default": "",
+          "description": "FTP 비밀번호"
+        },
+        "ftpMini.remoteRoot": {
+          "type": "string",
+          "default": "/html",
+          "description": "원격 작업 디렉토리 (기본값: /html)"
+        },
+        "ftpMini.syncOnConnect": {
+          "type": "boolean",
+          "default": true,
+          "description": "FTP 연결 시 자동으로 원격 파일 동기화"
+        },
+        "ftpMini.syncExclude": {
+          "type": "array",
+          "default": [
+            ".git",
+            "node_modules"
+          ],
+          "description": "동기화에서 제외할 파일/폴더 패턴"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "node ./esbuild.js",
+    "package": "node ./esbuild.js --minify",
+    "watch": "node ./esbuild.js --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^16.18.34",
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.8",
+    "@typescript-eslint/parser": "^5.59.8",
+    "@vscode/test-electron": "^2.3.2",
+    "esbuild": "^0.17.19",
+    "eslint": "^8.41.0",
+    "typescript": "^5.1.3"
+  },
+  "dependencies": {
+    "basic-ftp": "^5.0.5"
+  },
+  "publisher": "lambda0x63",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lambda0x63/ftp-mini.git"
+  },
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#C80000",
+    "theme": "dark"
+  },
+  "keywords": [
+    "ftp",
+    "deploy",
+    "upload",
+    "sync"
+  ],
+  "bugs": {
+    "url": "https://github.com/lambda0x63/ftp-mini/issues"
+  },
+  "homepage": "https://github.com/lambda0x63/ftp-mini#readme",
+  "license": "MIT"
+}
