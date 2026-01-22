@@ -8,7 +8,9 @@
         "rootDir": "src",
         "strict": true,
         "moduleResolution": "node",
-        "types": ["node", "vscode"]
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "types": ["node", "vscode", "mocha"]
     },
     "exclude": ["node_modules", ".vscode-test"]
 }
