@@ -2,7 +2,7 @@
   "name": "ftp-mini",
   "displayName": "FTP Mini",
   "description": "Simple FTP/FTPS/SFTP deployment for web development",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -29,7 +29,11 @@
       "properties": {
         "ftpMini.protocol": {
           "type": "string",
-          "enum": ["ftp", "ftps", "sftp"],
+          "enum": [
+            "ftp",
+            "ftps",
+            "sftp"
+          ],
           "default": "ftp",
           "description": "연결 프로토콜 (ftp: 일반, ftps: TLS 암호화, sftp: SSH)"
         },
