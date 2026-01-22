@@ -8,38 +8,36 @@
   <img src="images/icon.png" width="120" height="120" alt="FTP Mini Logo">
   <h1>FTP Mini</h1>
   <p><b>Lightweight & Real-time Deployment Tool for VS Code</b></p>
-  <p>간결하면서 강력한 웹 개발용 FTP/FTPS/SFTP 동기화 도구</p>
+  <p>웹 개발용 FTP/FTPS/SFTP 동기화 도구</p>
   <br/>
 </div>
 
 <hr/>
 
-## 📑 Overview
+## Overview
 
-**FTP Mini**는 워크스페이스의 변화를 실시간으로 감지하여 원격 서버에 동기화하는 VS Code 전용 확장 프로그램입니다. 복잡한 UI 없이 저장과 동시에 배포되는 쾌적한 개발 경험을 제공합니다.
-
-<br/>
-
-## ✨ Key Features
-
-- **Multi-Protocol Support**: FTP, FTPS(TLS), SFTP(SSH)를 모두 지원하는 통합 엔진 탑재
-- **Real-time Synchronization**: 파일 저장, 생성, 이름 변경, 삭제 등 모든 워크스페이스 이벤트를 즉각 반영
-- **Session-based Security**: 보안을 위해 비밀번호 등 민감한 정보는 세션 기반으로 관리되며 종료 시 자동 휘발
-- **Unified Status Bar**: 하단 상태바를 통해 연결 상태 확인 및 주요 명령 실행 가능
+워크스페이스 변경 사항의 실시간 서버 동기화 기능 제공. 별도 UI 조작 없이 저장과 동시에 배포되는 개발 환경 구현.
 
 <br/>
 
-## 🚀 Quick Start
+## Key Features
 
-1. `Ctrl+Shift+P` (macOS: `Cmd+Shift+P`) 실행
-2. `FTP Mini: 연결 설정` 선택 후 서버 정보 입력
-3. 연결 성공 후 파일 저장 시 자동 업로드 시작
+- **Multi-Protocol Support**: FTP, FTPS(TLS), SFTP(SSH) 통합 지원.
+- **Real-time Synchronization**: 파일 저장, 생성, 변경, 삭제 등 워크스페이스 이벤트 실시간 감지 및 반영.
+- **Session-based Security**: 비밀번호 등 민감 정보의 세션 기반 관리 및 자동 휘발 처리.
+- **Unified Status Bar**: 상태바를 통한 연결 상태 모니터링 및 주요 명령 실행 기능.
 
 <br/>
 
-## ⚙️ Configuration
+## Quick Start
 
-`settings.json`에서 아래 옵션들을 상세하게 조정할 수 있습니다.
+1. `Ctrl+Shift+P` (macOS: `Cmd+Shift+P`) 실행.
+2. `FTP Mini: 연결 설정` 선택 후 서버 정보 입력.
+3. 연결 성공 시 자동 업로드 활성화.
+
+<br/>
+
+## Configuration
 
 | Property | Type | Default | Description |
 |:---|:---:|:---:|:---|
@@ -49,15 +47,15 @@
 | `ftpMini.password` | `string` | `""` | 접속 비밀번호 |
 | `ftpMini.remoteRoot` | `string` | `"/html"` | 서버측 배포 루트 경로 |
 | `ftpMini.syncOnConnect` | `boolean` | `true` | 연결 시 변경사항 체크 및 동기화 |
-| `ftpMini.syncExclude` | `array` | `[".git", "node_modules"]` | 제외할 Glob 패턴 |
+| `ftpMini.syncExclude` | `array` | `[".git", "node_modules"]` | 제외 대상 Glob 패턴 |
 
 <br/>
 
-## 🛠 Tech Stack
+## Tech Stack
 
-- **Engine**: Node.js & VS Code Extension API
-- **Protocols**: `basic-ftp`, `ssh2-sftp-client`
-- **Compiler**: TypeScript 5.1 & esbuild (Minified build)
+- **Engine**: Node.js & VS Code Extension API.
+- **Protocols**: `basic-ftp`, `ssh2-sftp-client`.
+- **Compiler**: TypeScript 5.1 & esbuild.
 
 <br/>
 
