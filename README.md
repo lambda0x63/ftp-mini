@@ -1,93 +1,65 @@
-<p align="center">
+# FTP Mini
+
+<p align="left">
   <img src="images/icon.png" width="128" alt="FTP Mini Logo">
 </p>
 
-# ftp-mini
+웹 개발자를 위한 경량 FTP/FTPS/SFTP 배포 도구입니다. VS Code 워크스페이스 이벤트와 연동되어 실시간 파일 동기화를 지원하며, 별도의 복잡한 설정 없이 즉각적인 배포 환경을 제공합니다.
 
-### Visual Studio Code Marketplace
+### Marketplace Links
 [![VS Code Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/lambda0x63.ftp-mini?logo=visual-studio-code&label=Version)](https://marketplace.visualstudio.com/items?itemName=lambda0x63.ftp-mini)
-[![VS Code Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/lambda0x63.ftp-mini?logo=visual-studio-code&label=Installs)](https://marketplace.visualstudio.com/items?itemName=lambda0x63.ftp-mini)
-
-### Open VSX Registry
 [![Open VSX Version](https://img.shields.io/open-vsx/v/lambda0x63/ftp-mini?logo=open-vsx&label=Version)](https://open-vsx.org/extension/lambda0x63/ftp-mini)
-[![Open VSX Installs](https://img.shields.io/open-vsx/dt/lambda0x63/ftp-mini?logo=open-vsx&label=Installs)](https://open-vsx.org/extension/lambda0x63/ftp-mini)
 
 ## 시스템 개요
 
 ### 핵심 기능
-**멀티 프로토콜 지원**
-- FTP, FTPS (TLS 암호화), SFTP (SSH 기반) 연결 지원
-- 프로토콜별 최적화된 엔진 탑재 (basic-ftp, ssh2-sftp-client)
+**다중 프로토콜 지원**
+- FTP, FTPS (Explicit TLS), SFTP (SSH File Transfer Protocol) 지원
+- `basic-ftp` 및 `ssh2-sftp-client` 기반의 안정적인 전송 엔진
 
-**자동 동기화 (Auto Sync)**
-- 파일 저장 시 즉시 원격 서버 업로드
-- 파일/폴더 생성 삭제 이동 실시간 반영
-- `onDidSaveTextDocument` 등 VS Code 워크스페이스 이벤트 훅 기반 동작
+**실시간 자동 동기화**
+- 워크스페이스 내 파일 저장, 생성, 삭제, 이동, 이름 변경 이벤트 실시간 감지
+- `onDidSaveTextDocument` 및 `onDidCreateFiles` 등 VS Code API 기반 동작
 
-**세션 기반 관리**
-- VS Code 재시작 시 보안을 위해 설정 자동 초기화
-- 전역 상태 관리 (`global.ftpManager`) 통한 연결 유지
-- 상태바(Status Bar) 통합 제어 메뉴 제공
+**세션 및 보안 관리**
+- 보안 관리를 위해 VS Code 종료 시 세션 정보(비밀번호 등) 휘발성 처리
+- 하단 상태바(Status Bar)를 통한 연결 상태 모니터링 및 제어 메뉴 제공
 
-### 주요 명령
-**연결 설정 (Configure)**
-- `ftp-mini.configure` 명령으로 초기 설정 진입
-- 프로토콜, 호스트, 사용자, 비밀번호, 루트 경로 대화형 입력
+### 주요 명령어
+- **FTP Mini: 연결 설정**: 프로토콜 및 서버 정보 설정을 위한 대화형 대시보드 실행
+- **FTP Mini: 연결 비활성화**: 현재 활성화된 세션 종료 및 설정 초기화
+- **FTP Mini: 로그 확인**: 실시간 전송 내역 및 디버그 메시지 출력
 
-**메뉴 및 로그**
-- `ftp-mini.showMenu` 연결 재설정 로그 확인 등 통합 메뉴
-- `ftp-mini.showLogs` 연결 상태 및 전송 내역 출력
+## 설정항목 (Configuration)
 
-## 설정 옵션 (Configuration)
+### 기본 설정 (`ftpMini.*`)
+| 항목 | 타입 | 설명 |
+|:---|:---:|:---|
+| `protocol` | `string` | 연결 프로토콜 (`ftp`, `ftps`, `sftp`) |
+| `host` | `string` | 원격 서버 호스트 주소 |
+| `username` | `string` | 접속 계정 ID |
+| `password` | `string` | 접속 비밀번호 |
+| `remoteRoot` | `string` | 서버측 배포 루트 디렉토리 (기본값: `/html`) |
+| `syncOnConnect` | `boolean` | 연결 시 원격지 파일 자동 동기화 여부 |
+| `syncExclude` | `array` | 동기화 제외 대상 Glob 패턴 (`.git`, `node_modules` 등) |
 
-### 기본 설정
-VS Code `settings.json` 내 `ftpMini` 네임스페이스 사용
-- **ftpMini.protocol** 연결 방식 (`ftp`, `ftps`, `sftp`)
-- **ftpMini.host** 서버 주소 (문자열)
-- **ftpMini.username** 사용자 계정 (문자열)
-- **ftpMini.password** 접속 비밀번호 (문자열)
-- **ftpMini.remoteRoot** 원격 작업 디렉토리 (기본값 `/html`)
+## 기술 스택
+- **Extension Engine**: VS Code Extension API (1.80.0+)
+- **Language**: TypeScript 5.1
+- **Bundler**: esbuild (Production Minified)
+- **Dependencies**: `basic-ftp`, `ssh2-sftp-client`, `minimatch`
 
-### 동기화 옵션
-- **ftpMini.syncOnConnect** 연결 시 전체 동기화 여부 (Boolean)
-- **ftpMini.syncExclude** 동기화 제외 패턴 배열
-  - 기본값 `.git`, `node_modules` 등
-
-## 기술 스택 (Tech Stack)
-
-### Core Integration
-- **VS Code API** 1.80.0+
-- **TypeScript** 5.1
-- **Node.js** Runtime
-
-### FTP/SFTP Engine
-- **basic-ftp** 5.0.5 (FTP/FTPS 엔진)
-- **ssh2-sftp-client** 9.1.0 (SFTP 엔진)
-
-### Build & Bundle
-- **esbuild** 고성능 번들링 및 압축
-- **ESLint** 코드 품질 관리
-
-## 설치 및 실행 (Installation)
-
-### 마켓플레이스 설치
-**Visual Studio Code Marketplace** 또는 **OpenVSX Registry** 공식 배포
-- 확장 프로그램 마켓플레이스에서 **FTP Mini** 검색 및 설치
-- `lambda0x63.ftp-mini` 식별자 확인
-
-### 개발 환경 설정 (Development)
+## 개발 및 빌드
 ```bash
 # 의존성 설치
 npm install
 
-# 확장 패키징
+# 프로덕션 빌드 (Packaging)
 npm run package
 
-# 개발 모드 실행 (Watch)
+# 개발 모드 (Watch)
 npm run watch
 ```
 
-### 디버깅
-1. VS Code에서 프로젝트 열기
-2. `F5` 키로 **Extension Development Host** 실행
-3. 명령 팔레트(`Ctrl+Shift+P`)에서 `FTP Mini: 연결 설정` 실행
+## 라이선스
+[MIT License](LICENSE)
