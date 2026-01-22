@@ -1,0 +1,28 @@
+name: Publish Extension
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and Publish to VS Marketplace
+        run: npx vsce publish -p ${{ secrets.VSCE_TOKEN }}
+
+      - name: Build and Publish to Open VSX
+        run: npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
